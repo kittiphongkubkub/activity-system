@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Activity Project Management System
 
-## Getting Started
+A digital workflow system for university project approvals, reporting, and activity scoring.
 
-First, run the development server:
+## 🚀 Features
 
+- **RBAC (Role-Based Access Control)**: Supports Students, Advisors, Program Chairs, Department Heads, Dean, and University administrators.
+- **Project Approval (Form 025)**: Full digital submission with automated multi-stage workflow.
+- **Project Reporting (Form 027)**: Summary of project outcomes and final budget tracking.
+- **Automatic Scoring**: Activity scores are awarded automatically upon project completion.
+- **Notification System**: Real-time progress tracking for all participants.
+- **Admin Dashboard**: Global statistics and system-wide project oversight.
+- **Export to PDF**: Clean, print-friendly views for all university forms.
+
+## 🛠️ Technology Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Database**: SQLite (Development) / PostgreSQL (Production ready)
+- **ORM**: Prisma
+- **Auth**: NextAuth.js
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Validation**: Zod
+
+## 🏁 Getting Started
+
+### 1. Installation
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Database Setup
+Ensure your `.env` file is configured (defaults to SQLite). Then run:
+```bash
+npx prisma db push
+npm run db:seed
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Run Development Server
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 👥 Default Test Users
 
-## Learn More
+| Role | Email | Password |
+|------|-------|----------|
+| Student | `student@example.com` | `password123` |
+| Advisor | `advisor@example.com` | `password123` |
+| Admin | `admin@example.com` | `password123` |
+| Dean | `dean@example.com` | `password123` |
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📄 License
+Internal University Project System.
