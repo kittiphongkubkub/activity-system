@@ -57,7 +57,15 @@ export default async function ProjectDetailPage(props: {
           <PrintButton />
           
           {(project.status === "draft" || project.status === "revision_required") && (
-            <SubmitButton projectId={project.id} />
+            <>
+              <Link
+                href={`/projects/${project.id}/edit`}
+                className="flex items-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
+              >
+                แก้ไขโครงการ
+              </Link>
+              <SubmitButton projectId={project.id} />
+            </>
           )}
 
         {project.status === "approved" && (
@@ -143,6 +151,41 @@ export default async function ProjectDetailPage(props: {
               </div>
             </div>
           </div>
+
+          {/* Revision History Section */}
+          {project.workflowSteps.some(s => s.comments) && (
+            <section className="rounded-xl border border-amber-100 bg-amber-50/30 p-6 shadow-sm overflow-hidden relative mt-8">
+              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                <Send className="h-24 w-24 rotate-12" />
+              </div>
+              <h3 className="mb-4 text-lg font-black text-amber-800 flex items-center">
+                <AlertCircle className="mr-2 h-5 w-5 text-amber-600" />
+                ประวัติการสั่งแก้ไขจากผู้อนุมัติ
+              </h3>
+              <div className="space-y-4 relative z-10">
+                {project.workflowSteps
+                  .filter(s => s.comments)
+                  .sort((a, b) => new Date(b.reviewedAt || 0).getTime() - new Date(a.reviewedAt || 0).getTime())
+                  .map((step, idx) => (
+                    <div key={idx} className="bg-white rounded-2xl p-4 border border-amber-100 shadow-sm transition-all hover:scale-[1.01]">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">
+                          {step.stepName}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-400">
+                          {step.reviewedAt ? new Date(step.reviewedAt).toLocaleDateString("th-TH", {
+                            day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit'
+                          }) : "-"}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-700 leading-relaxed font-medium italic">
+                        "{step.comments}"
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </section>
+          )}
         </div>
 
         {/* Sidebar: Workflow & Info */}

@@ -69,6 +69,22 @@ export async function POST(
       await tx.workflowStep.createMany({
         data: steps.map(s => ({ ...s, projectId: id, docType: "027" }))
       });
+
+      // 4. Create Documents for 027
+      const userId = (session.user as any).id;
+      if (body.attachments?.length > 0) {
+        await tx.document.createMany({
+          data: body.attachments.map((file: any) => ({
+            projectId: id,
+            docType: "attachment_027",
+            fileName: file.fileName,
+            fileUrl: file.fileUrl,
+            fileSize: file.fileSize,
+            mimeType: file.mimeType,
+            uploadedBy: userId,
+          }))
+        });
+      }
     });
 
     return NextResponse.json({ success: true });
