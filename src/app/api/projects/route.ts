@@ -32,6 +32,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
+    const userId = (session.user as any).id;
     
     // Validate the data
     const validatedData = project025Schema.parse(body);
@@ -39,11 +40,20 @@ export async function POST(req: Request) {
     const project = await prisma.project.create({
       data: {
         ...validatedData,
-        ownerId: (session.user as any).id,
+        ownerId: userId,
         status: "draft",
-        // Convert strings to dates for Prisma
         plannedStartDate: new Date(validatedData.plannedStartDate),
         plannedEndDate: new Date(validatedData.plannedEndDate),
+        documents: {
+          create: body.attachments?.map((file: any) => ({
+            docType: "attachment",
+            fileName: file.fileName,
+            fileUrl: file.fileUrl,
+            fileSize: file.fileSize,
+            mimeType: file.mimeType,
+            uploadedBy: userId,
+          })) || [],
+        },
       },
     });
 

@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { project025Schema, Project025Input } from "@/lib/validations/project025";
-import { Save, Send, Loader2, AlertCircle } from "lucide-react";
+import { Save, Send, Loader2, AlertCircle, Upload, X, FileText } from "lucide-react";
 
 const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
   const router = useRouter();
   const [advisors, setAdvisors] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const {
     register,
@@ -35,6 +37,35 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
       .catch(err => console.error("Failed to load advisors", err));
   }, []);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAttachments([...attachments, {
+          fileName: data.fileName,
+          fileUrl: data.fileUrl,
+          fileSize: data.fileSize,
+          mimeType: data.mimeType
+        }]);
+      }
+    } catch (err) {
+      console.error("Upload failed", err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const onSubmit = async (data: Project025Input) => {
     setIsSubmitting(true);
     setError("");
@@ -42,7 +73,7 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
       const response = await fetch("/api/projects", {
         method: initialData ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, attachments }),
       });
 
       if (!response.ok) throw new Error("บันทึกข้อมูลไม่สำเร็จ");
@@ -271,6 +302,59 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
               className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500"
             />
             {errors.budgetRequested && <p className="mt-1 text-xs text-red-500">{errors.budgetRequested.message}</p>}
+          </div>
+        </div>
+      </section>
+
+      {/* Attachments */}
+      <section className="rounded-xl border bg-white p-6 shadow-sm">
+        <h3 className="mb-6 text-lg font-bold text-slate-800 border-b pb-2">เอกสารแนบ</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {attachments.map((file, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 rounded-lg border bg-slate-50">
+                <div className="flex items-center space-x-3 truncate">
+                  <FileText className="h-5 w-5 text-indigo-500" />
+                  <span className="text-sm font-medium truncate">{file.fileName}</span>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
+                  className="p-1 hover:bg-slate-200 rounded-full transition-colors"
+                >
+                  <X className="h-4 w-4 text-slate-500" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="relative">
+            <input
+              type="file"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="file-upload"
+              disabled={isUploading}
+            />
+            <label
+              htmlFor="file-upload"
+              className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                isUploading ? 'bg-slate-50 border-slate-300' : 'hover:bg-slate-50 border-slate-300 hover:border-indigo-400'
+              }`}
+            >
+              {isUploading ? (
+                <div className="flex flex-col items-center">
+                  <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+                  <p className="mt-2 text-sm font-medium text-slate-500">กำลังอัพโหลด...</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <Upload className="h-8 w-8 text-slate-400" />
+                  <p className="mt-2 text-sm font-medium text-slate-600">คลิกเพื่ออัพโหลดเอกสารแนบ</p>
+                  <p className="text-xs text-slate-400 mt-1">PDF, Word, Image (สูงสุด 10MB)</p>
+                </div>
+              )}
+            </label>
           </div>
         </div>
       </section>
