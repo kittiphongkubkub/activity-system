@@ -80,7 +80,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-            สวัสดี, <span className="text-indigo-600">{session.user?.name}</span> 👋
+            สวัสดี, <span className="text-indigo-600">{session.user?.name}</span>
           </h2>
           <p className="text-slate-500 font-medium">
             {role === "student" 
@@ -192,7 +192,7 @@ export default async function DashboardPage() {
                 <div className={`rounded-2xl p-5 border ${scoreData.total >= 85 ? 'bg-amber-50 border-amber-100 text-amber-800' : 'bg-slate-50 border-slate-100 text-slate-600'}`}>
                    <p className="text-xs font-bold leading-relaxed">
                       {scoreData.total >= 85 
-                        ? "🎉 ยินดีด้วย! คุณได้รับรางวัลเกียรติยศประจำปีนี้แล้ว สามารถตรวจสอบเกียรติบัตรได้ในหน้าตั้งค่า" 
+                        ? "ยินดีด้วย! คุณได้รับรางวัลเกียรติยศประจำปีนี้แล้ว สามารถตรวจสอบเกียรติบัตรได้ในหน้าตั้งค่า" 
                         : `คุณต้องการอีก ${Math.max(85 - scoreData.total, 0)} คะแนนเพื่อรับรางวัลเกียรติยศ (เกณฑ์ 85 คะแนน)`}
                    </p>
                 </div>
