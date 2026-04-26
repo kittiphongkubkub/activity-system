@@ -28,7 +28,17 @@ const Topbar = () => {
 
   return (
     <header className="flex h-20 items-center justify-between border-b bg-white/70 backdrop-blur-md px-10 sticky top-0 z-40">
-      <div className="flex-1" />
+      <div className="flex-1 flex flex-col justify-center">
+        <h2 className="text-lg font-black text-slate-800 tracking-tight leading-none">
+          ระบบจัดการเอกสารโครงการกิจกรรม
+        </h2>
+        <div className="flex items-center mt-1.5">
+          <div className="h-1 w-1 rounded-full bg-indigo-500 mr-2" />
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+            Activity Project Management System
+          </p>
+        </div>
+      </div>
       
       <div className="flex items-center space-x-6">
         <Link href="/notifications" className="relative rounded-2xl p-2.5 text-slate-400 transition-all hover:bg-indigo-50 hover:text-indigo-600 group">
