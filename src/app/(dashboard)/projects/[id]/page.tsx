@@ -2,7 +2,7 @@ import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 import { StatusBadge } from "@/components/projects/StatusBadge";
 import { WorkflowTimeline } from "@/components/projects/WorkflowTimeline";
-import { Calendar, MapPin, Users, DollarSign, ArrowLeft, Send, Printer } from "lucide-react";
+import { Calendar, MapPin, Users, DollarSign, ArrowLeft, Send, Printer, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import SubmitButton from "./SubmitButton";
 import ReviewForm from "@/components/approvals/ReviewForm";
