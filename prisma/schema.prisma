@@ -9,64 +9,59 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  passwordHash  String   @map("password_hash")
-  fullName      String   @map("full_name")
-  studentId     String?  @map("student_id")
-  role          String
-  department    String?
-  faculty       String?
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  
-  ownedProjects    Project[]      @relation("ProjectOwner")
-  advisedProjects  Project[]      @relation("ProjectAdvisor")
-  workflowSteps    WorkflowStep[]
-  documents        Document[]
-  notifications    Notification[]
-  activityScores   ActivityScore[]
-  
+  id              String          @id @default(uuid())
+  email           String          @unique
+  passwordHash    String          @map("password_hash")
+  fullName        String          @map("full_name")
+  studentId       String?         @map("student_id")
+  role            String
+  department      String?
+  faculty         String?
+  isActive        Boolean         @default(true) @map("is_active")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  activityScores  ActivityScore[]
+  documents       Document[]
+  notifications   Notification[]
+  advisedProjects Project[]       @relation("ProjectAdvisor")
+  ownedProjects   Project[]       @relation("ProjectOwner")
+  workflowSteps   WorkflowStep[]
+
   @@map("users")
 }
 
 model Project {
-  id                  String   @id @default(uuid())
-  projectName         String   @map("project_name")
-  projectType         String?  @map("project_type")
-  description         String?
-  objectives          String?
-  expectedOutcome     String?  @map("expected_outcome")
-  plannedStartDate    DateTime? @map("planned_start_date")
-  plannedEndDate      DateTime? @map("planned_end_date")
-  location            String?
-  expectedParticipants Int?    @map("expected_participants")
-  budgetRequested     Float? @map("budget_requested")
-  ownerId             String   @map("owner_id")
-  advisorId           String?  @map("advisor_id")
-  department          String?
-  academicYear        String?  @map("academic_year")
-  semester            Int?
-  
-  // New fields for accurate scoring based on user criteria
-  studentRole         String?  @map("student_role") // e.g. "president", "vp", "committee", "operator", "participant"
-  impactLevel         String?  @map("impact_level") // e.g. "national", "community", "university", "faculty", "personal"
-  organizationType    String?  @map("organization_type") // e.g. "union", "club", "working_group"
-  
-  status              String   @default("draft")
-  currentStep         String?  @map("current_step")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-  
-  owner          User           @relation("ProjectOwner", fields: [ownerId], references: [id])
-  advisor        User?          @relation("ProjectAdvisor", fields: [advisorId], references: [id])
-  workflowSteps  WorkflowStep[]
-  documents      Document[]
-  summary        ProjectSummary?
-  activityScores ActivityScore[]
-  notifications  Notification[]
-  
+  id                   String          @id @default(uuid())
+  projectName          String          @map("project_name")
+  projectType          String?         @map("project_type")
+  description          String?
+  objectives           String?
+  expectedOutcome      String?         @map("expected_outcome")
+  plannedStartDate     DateTime?       @map("planned_start_date")
+  plannedEndDate       DateTime?       @map("planned_end_date")
+  location             String?
+  expectedParticipants Int?            @map("expected_participants")
+  budgetRequested      Float?          @map("budget_requested")
+  ownerId              String          @map("owner_id")
+  advisorId            String?         @map("advisor_id")
+  department           String?
+  academicYear         String?         @map("academic_year")
+  semester             Int?
+  studentRole          String?         @map("student_role")
+  impactLevel          String?         @map("impact_level")
+  organizationType     String?         @map("organization_type")
+  status               String          @default("draft")
+  currentStep          String?         @map("current_step")
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+  activityScores       ActivityScore[]
+  documents            Document[]
+  notifications        Notification[]
+  summary              ProjectSummary?
+  advisor              User?           @relation("ProjectAdvisor", fields: [advisorId], references: [id])
+  owner                User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+  workflowSteps        WorkflowStep[]
+
   @@map("projects")
 }
 
@@ -83,30 +78,28 @@ model WorkflowStep {
   reviewedAt   DateTime? @map("reviewed_at")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
-  
-  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignee User?   @relation(fields: [assigneeId], references: [id])
-  
+  assignee     User?     @relation(fields: [assigneeId], references: [id])
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   @@map("workflow_steps")
 }
 
 model Document {
-  id          String   @id @default(uuid())
-  projectId   String   @map("project_id")
-  docType     String   @map("doc_type")
-  version     Int      @default(1)
-  fileName    String?  @map("file_name")
-  fileUrl     String?  @map("file_url")
-  fileSize    Int?     @map("file_size")
-  mimeType    String?  @map("mime_type")
-  uploadedBy  String   @map("uploaded_by")
-  isCurrent   Boolean  @default(true) @map("is_current")
-  notes       String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  
-  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploader   User    @relation(fields: [uploadedBy], references: [id])
-  
+  id         String   @id @default(uuid())
+  projectId  String   @map("project_id")
+  docType    String   @map("doc_type")
+  version    Int      @default(1)
+  fileName   String?  @map("file_name")
+  fileUrl    String?  @map("file_url")
+  fileSize   Int?     @map("file_size")
+  mimeType   String?  @map("mime_type")
+  uploadedBy String   @map("uploaded_by")
+  isCurrent  Boolean  @default(true) @map("is_current")
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader   User     @relation(fields: [uploadedBy], references: [id])
+
   @@map("documents")
 }
 
@@ -117,7 +110,7 @@ model ProjectSummary {
   actualEndDate      DateTime? @map("actual_end_date")
   actualLocation     String?   @map("actual_location")
   actualParticipants Int?      @map("actual_participants")
-  budgetUsed         Float?  @map("budget_used")
+  budgetUsed         Float?    @map("budget_used")
   outcomeSummary     String?   @map("outcome_summary")
   problemsFaced      String?   @map("problems_faced")
   suggestions        String?
@@ -126,9 +119,8 @@ model ProjectSummary {
   submittedAt        DateTime? @map("submitted_at")
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")
-  
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+  project            Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   @@map("project_summaries")
 }
 
@@ -141,10 +133,9 @@ model ActivityScore {
   notes        String?
   awardedAt    DateTime @default(now()) @map("awarded_at")
   awardedBy    String?  @map("awarded_by")
-  
-  student User    @relation(fields: [studentId], references: [id])
-  project Project @relation(fields: [projectId], references: [id])
-  
+  project      Project  @relation(fields: [projectId], references: [id])
+  student      User     @relation(fields: [studentId], references: [id])
+
   @@map("activity_scores")
 }
 
@@ -157,9 +148,8 @@ model Notification {
   message   String?
   isRead    Boolean  @default(false) @map("is_read")
   createdAt DateTime @default(now()) @map("created_at")
-  
-  user    User     @relation(fields: [userId], references: [id])
-  project Project? @relation(fields: [projectId], references: [id])
-  
+  project   Project? @relation(fields: [projectId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
   @@map("notifications")
 }
