@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { StatusBadge } from "@/components/projects/StatusBadge";
 import { ProjectSearch } from "@/components/projects/ProjectSearch";
+import { Plus, FileText } from "lucide-react";
 
 export default async function ProjectsPage({
   searchParams,
