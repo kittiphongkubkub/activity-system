@@ -41,24 +41,35 @@ export async function PUT(
     // Validate the data
     const validatedData = project025Schema.parse(body);
 
-    const project = await prisma.project.update({
-      where: { id, ownerId: userId },
-      data: {
-        ...validatedData,
-        plannedStartDate: new Date(validatedData.plannedStartDate),
-        plannedEndDate: new Date(validatedData.plannedEndDate),
-        // Update documents if provided
-        documents: body.attachments?.length > 0 ? {
-          create: body.attachments.map((file: any) => ({
-            docType: "attachment",
-            fileName: file.fileName,
-            fileUrl: file.fileUrl,
-            fileSize: file.size,
-            mimeType: file.type,
-            uploadedBy: userId,
-          }))
-        } : undefined,
-      },
+    // Use transaction to ensure both delete and update happen together
+    const project = await prisma.$transaction(async (tx) => {
+      // 1. Delete old documents if new ones are provided
+      if (body.attachments) {
+        await tx.document.deleteMany({
+          where: { projectId: id }
+        });
+      }
+
+      // 2. Update the project
+      return await tx.project.update({
+        where: { id, ownerId: userId },
+        data: {
+          ...validatedData,
+          plannedStartDate: new Date(validatedData.plannedStartDate),
+          plannedEndDate: new Date(validatedData.plannedEndDate),
+          // Create new documents from the provided list
+          documents: body.attachments?.length > 0 ? {
+            create: body.attachments.map((file: any) => ({
+              docType: "attachment",
+              fileName: file.fileName,
+              fileUrl: file.fileUrl,
+              fileSize: file.fileSize,
+              mimeType: file.mimeType,
+              uploadedBy: userId,
+            }))
+          } : undefined,
+        },
+      });
     });
 
     return NextResponse.json(project);

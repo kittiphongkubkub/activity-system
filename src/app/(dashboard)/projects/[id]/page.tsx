@@ -97,15 +97,15 @@ export default async function ProjectDetailPage(props: {
             <div className="space-y-4">
               <div>
                 <h4 className="text-sm font-medium text-slate-500 uppercase tracking-wider">หลักการและเหตุผล</h4>
-                <p className="mt-1 text-slate-700 whitespace-pre-wrap">{project.description}</p>
+                <p className="mt-1 text-slate-700 whitespace-pre-wrap break-words">{project.description}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-slate-500 uppercase tracking-wider">วัตถุประสงค์</h4>
-                <p className="mt-1 text-slate-700 whitespace-pre-wrap">{project.objectives}</p>
+                <p className="mt-1 text-slate-700 whitespace-pre-wrap break-words">{project.objectives}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-slate-500 uppercase tracking-wider">ผลที่คาดว่าจะได้รับ</h4>
-                <p className="mt-1 text-slate-700 whitespace-pre-wrap">{project.expectedOutcome}</p>
+                <p className="mt-1 text-slate-700 whitespace-pre-wrap break-words">{project.expectedOutcome}</p>
               </div>
             </div>
           </section>
@@ -210,7 +210,7 @@ export default async function ProjectDetailPage(props: {
                           }) : "-"}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-700 leading-relaxed font-medium italic">
+                      <p className="text-sm text-slate-700 leading-relaxed font-medium italic break-words">
                         "{step.comments}"
                       </p>
                     </div>
