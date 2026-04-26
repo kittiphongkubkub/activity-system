@@ -11,15 +11,15 @@ export default async function ProjectsPage({
 }: {
   searchParams: Promise<{ query?: string; status?: string }>;
 }) {
-  const { query, status } = await searchParams;
+  const { search, status } = await searchParams;
   const session = await getServerSession(authOptions);
   
   const projects = await prisma.project.findMany({
     where: {
       ownerId: (session?.user as any)?.id,
-      ...(query ? {
+      ...(search ? {
         projectName: {
-          contains: query,
+          contains: search,
           mode: 'insensitive'
         }
       } : {}),

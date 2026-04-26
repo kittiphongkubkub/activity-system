@@ -57,17 +57,17 @@ export default async function ProjectDetailPage(props: {
         <div className="flex items-center space-x-3">
           <PrintButton />
           
-          {(project.status === "draft" || project.status === "revision_required") && (
-            <>
-              <Link
-                href={`/projects/${project.id}/edit`}
-                className="flex items-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
-              >
-                แก้ไขโครงการ
-              </Link>
-              <SubmitButton projectId={project.id} />
-            </>
-          )}
+        {(project.status === "draft" || project.status === "revision_required") && (session?.user as any)?.id === project.ownerId && (
+          <>
+            <Link
+              href={`/projects/${project.id}/edit`}
+              className="flex items-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
+            >
+              แก้ไขโครงการ
+            </Link>
+            <SubmitButton projectId={project.id} />
+          </>
+        )}
 
         {project.status === "approved" && (
           <Link
@@ -79,7 +79,7 @@ export default async function ProjectDetailPage(props: {
           </Link>
         )}
 
-        {project.status === "summary_revision_required" && (
+        {project.status === "summary_revision_required" && (session?.user as any)?.id === project.ownerId && (
           <Link
             href={`/projects/${project.id}/summary`}
             className="flex items-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
