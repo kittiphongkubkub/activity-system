@@ -20,7 +20,26 @@ import { useSession, signOut } from "next-auth/react";
 const Sidebar = () => {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [unreadCount, setUnreadCount] = (require("react").useState)(0);
   const role = (session?.user as any)?.role;
+
+  (require("react").useEffect)(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch("/api/notifications/unread-count");
+        const data = await res.json();
+        setUnreadCount(data.count);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    if (session) {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 30000); // Update every 30s
+      return () => clearInterval(interval);
+    }
+  }, [session]);
 
   const routes = [
     {
@@ -117,6 +136,11 @@ const Sidebar = () => {
                   route.active ? "text-indigo-400 scale-110" : "text-slate-500 group-hover:text-indigo-400 group-hover:scale-110"
                 )} />
                 {route.label}
+                {route.label === "การแจ้งเตือน" && unreadCount > 0 && (
+                  <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white shadow-lg shadow-rose-500/20 animate-bounce">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
                 {route.active && (
                   <div className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
                 )}

@@ -6,6 +6,25 @@ import Link from "next/link";
 
 const Topbar = () => {
   const { data: session } = useSession();
+  const [unreadCount, setUnreadCount] = (require("react").useState)(0);
+
+  (require("react").useEffect)(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch("/api/notifications/unread-count");
+        const data = await res.json();
+        setUnreadCount(data.count);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    if (session) {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [session]);
 
   return (
     <header className="flex h-20 items-center justify-between border-b bg-white/70 backdrop-blur-md px-10 sticky top-0 z-40">
@@ -19,10 +38,14 @@ const Topbar = () => {
       </div>
       
       <div className="flex items-center space-x-6">
-        <button className="relative rounded-2xl p-2.5 text-slate-400 transition-all hover:bg-indigo-50 hover:text-indigo-600 group">
+        <Link href="/notifications" className="relative rounded-2xl p-2.5 text-slate-400 transition-all hover:bg-indigo-50 hover:text-indigo-600 group">
           <Bell className="h-5 w-5 transition-transform group-hover:rotate-12" />
-          <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-indigo-500 border-2 border-white animate-pulse" />
-        </button>
+          {unreadCount > 0 && (
+            <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white ring-2 ring-white">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </Link>
         
         <div className="h-8 w-[1px] bg-slate-200" />
         

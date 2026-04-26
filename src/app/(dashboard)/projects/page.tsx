@@ -3,14 +3,26 @@ import prisma from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { StatusBadge } from "@/components/projects/StatusBadge";
-import { Plus, FileText, Search, Filter } from "lucide-react";
+import { ProjectSearch } from "@/components/projects/ProjectSearch";
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string; status?: string }>;
+}) {
+  const { query, status } = await searchParams;
   const session = await getServerSession(authOptions);
   
   const projects = await prisma.project.findMany({
     where: {
       ownerId: (session?.user as any)?.id,
+      ...(query ? {
+        projectName: {
+          contains: query,
+          mode: 'insensitive'
+        }
+      } : {}),
+      ...(status ? { status } : {}),
     },
     orderBy: { createdAt: "desc" },
   });
@@ -32,20 +44,7 @@ export default async function ProjectsPage() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="flex items-center space-x-4 rounded-xl border bg-white p-4 shadow-sm">
-        <div className="flex flex-1 items-center rounded-lg bg-slate-100 px-3 py-2">
-          <Search className="h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="ค้นหาตามชื่อโครงการ..."
-            className="ml-2 w-full bg-transparent text-sm outline-none"
-          />
-        </div>
-        <button className="flex items-center rounded-lg border px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
-          <Filter className="mr-2 h-4 w-4" />
-          ตัวกรอง
-        </button>
-      </div>
+      <ProjectSearch />
 
       {/* Projects Table/Grid */}
       <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
