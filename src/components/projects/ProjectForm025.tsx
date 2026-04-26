@@ -66,12 +66,24 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
     }
   };
 
+  useEffect(() => {
+    if (initialData?.documents) {
+      setAttachments(initialData.documents.map((doc: any) => ({
+        fileName: doc.fileName,
+        fileUrl: doc.fileUrl,
+        fileSize: doc.fileSize,
+        mimeType: doc.mimeType
+      })));
+    }
+  }, [initialData]);
+
   const onSubmit = async (data: Project025Input) => {
     setIsSubmitting(true);
     setError("");
     try {
-      const response = await fetch("/api/projects", {
-        method: initialData ? "PUT" : "POST",
+      const url = initialData?.id ? `/api/projects/${initialData.id}` : "/api/projects";
+      const response = await fetch(url, {
+        method: initialData?.id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...data, attachments }),
       });
