@@ -216,8 +216,23 @@ export default async function DashboardPage() {
                 </Link>
               </div>
             </div>
+          )}
+
+          {/* Quick Info / Announcements */}
+          <div className="rounded-[32px] bg-indigo-600 p-8 text-white shadow-xl shadow-indigo-200 relative overflow-hidden group">
+             <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700" />
+             <div className="absolute -bottom-8 -right-8 h-32 w-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            
+             <div className="relative z-10 space-y-4">
+              <h4 className="text-lg font-black tracking-tight">คู่มือการใช้งาน</h4>
+              <p className="text-sm text-indigo-100 leading-relaxed font-medium">ศึกษารูปแบบการเขียนโครงการให้ถูกต้องเพื่อการอนุมัติที่รวดเร็ว</p>
+              <button className="flex items-center text-[10px] font-black uppercase tracking-widest bg-white text-indigo-600 px-5 py-3 rounded-xl hover:bg-indigo-50 transition-colors shadow-lg">
+                Download PDF
+                <ChevronRight className="ml-1 h-3 w-3" />
+              </button>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
