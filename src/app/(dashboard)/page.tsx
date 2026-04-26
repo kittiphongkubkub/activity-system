@@ -226,10 +226,14 @@ export default async function DashboardPage() {
              <div className="relative z-10 space-y-4">
               <h4 className="text-lg font-black tracking-tight">คู่มือการใช้งาน</h4>
               <p className="text-sm text-indigo-100 leading-relaxed font-medium">ศึกษารูปแบบการเขียนโครงการให้ถูกต้องเพื่อการอนุมัติที่รวดเร็ว</p>
-              <button className="flex items-center text-[10px] font-black uppercase tracking-widest bg-white text-indigo-600 px-5 py-3 rounded-xl hover:bg-indigo-50 transition-colors shadow-lg">
+              <a 
+                href="/docs/manual.pdf" 
+                download
+                className="flex items-center text-[10px] font-black uppercase tracking-widest bg-white text-indigo-600 px-5 py-3 rounded-xl hover:bg-indigo-50 transition-colors shadow-lg w-fit"
+              >
                 Download PDF
                 <ChevronRight className="ml-1 h-3 w-3" />
-              </button>
+              </a>
             </div>
           </div>
         </div>

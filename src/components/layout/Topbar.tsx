@@ -26,16 +26,31 @@ const Topbar = () => {
     }
   }, [session]);
 
+  const router = (require("next/navigation").useRouter)();
+  const [search, setSearch] = (require("react").useState)("");
+
+  const handleSearch = (e: any) => {
+    e.preventDefault();
+    if (search.trim()) {
+      router.push(`/projects?search=${encodeURIComponent(search.trim())}`);
+    }
+  };
+
   return (
     <header className="flex h-20 items-center justify-between border-b bg-white/70 backdrop-blur-md px-10 sticky top-0 z-40">
-      <div className="flex w-96 items-center rounded-2xl bg-slate-100/50 px-4 py-2.5 border border-slate-200/50 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
+      <form 
+        onSubmit={handleSearch}
+        className="flex w-96 items-center rounded-2xl bg-slate-100/50 px-4 py-2.5 border border-slate-200/50 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all"
+      >
         <Search className="h-4 w-4 text-slate-400" />
         <input
           type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="ค้นหาโครงการหรือกิจกรรม..."
           className="ml-3 w-full bg-transparent text-sm font-medium outline-none placeholder:text-slate-400"
         />
-      </div>
+      </form>
       
       <div className="flex items-center space-x-6">
         <Link href="/notifications" className="relative rounded-2xl p-2.5 text-slate-400 transition-all hover:bg-indigo-50 hover:text-indigo-600 group">
