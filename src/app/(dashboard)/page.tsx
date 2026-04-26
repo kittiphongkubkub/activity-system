@@ -75,81 +75,97 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="relative space-y-12 pb-20">
+      {/* Background Decorative Elements */}
+      <div className="absolute -top-24 -right-24 h-96 w-96 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/2 -left-24 h-96 w-96 bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
+
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-            สวัสดี, <span className="text-indigo-600">{session.user?.name}</span>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+        <div className="space-y-2">
+          <div className="inline-flex items-center space-x-2 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+            </span>
+            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">ระบบพร้อมใช้งาน</span>
+          </div>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">
+            สวัสดี, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">{session.user?.name}</span>
           </h2>
-          <p className="text-slate-500 font-medium">
+          <p className="text-slate-500 font-medium text-lg">
             {role === "student" 
               ? "ยินดีต้อนรับกลับมา! ตรวจสอบสถานะโครงการและคะแนนสะสมของคุณได้ที่นี่" 
               : "ภาพรวมการอนุมัติและโครงการทั้งหมดที่อยู่ภายใต้การดูแลของคุณ"}
           </p>
         </div>
+        
         {role === "student" && (
-          <Link href="/projects/new" className="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-6 py-3 text-sm font-black text-white shadow-xl shadow-slate-200 hover:bg-indigo-600 active:scale-95 transition-all">
-            <Plus className="mr-2 h-5 w-5" />
-            สร้างโครงการใหม่
+          <Link href="/projects/new" className="group relative inline-flex items-center justify-center overflow-hidden rounded-2xl bg-slate-950 px-8 py-4 text-sm font-black text-white shadow-2xl shadow-slate-200 transition-all hover:scale-[1.02] active:scale-95">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="relative flex items-center">
+              <Plus className="mr-2 h-5 w-5" />
+              สร้างโครงการใหม่
+            </span>
           </Link>
         )}
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className={`group relative overflow-hidden rounded-3xl border ${stat.border} bg-white p-6 transition-all hover:shadow-xl hover:shadow-indigo-500/5`}>
-             <div className="flex items-center justify-between">
-                <div className={`rounded-2xl ${stat.bg} ${stat.color} p-4 transition-transform group-hover:scale-110`}>
-                  <stat.icon className="h-7 w-7" />
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
-                  <p className="text-3xl font-black text-slate-900 mt-1">{stat.value}</p>
-                </div>
-             </div>
-             <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-slate-100 to-transparent" />
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 relative z-10">
+        {stats.map((stat, i) => (
+          <div key={i} className="group relative rounded-[32px] bg-white border border-slate-100 p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 overflow-hidden">
+            <div className={`absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full ${stat.bg.replace('bg-', 'bg-opacity-10 bg-')} opacity-[0.03] group-hover:opacity-[0.08] transition-opacity`} />
+            <div className={`mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl ${stat.bg} ${stat.color} bg-opacity-10`}>
+              <stat.icon className="h-6 w-6" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
+              <p className="text-4xl font-black text-slate-900">{stat.value}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-3 relative z-10">
         {/* Recent Projects List */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">โครงการล่าสุด</h3>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">โครงการล่าสุด</h3>
             <Link href="/projects" className="text-sm font-bold text-indigo-600 hover:underline flex items-center">
               ดูทั้งหมด <ChevronRight className="ml-1 h-4 w-4" />
             </Link>
           </div>
+          
           <div className="space-y-4">
             {recentProjects.length === 0 ? (
-              <div className="rounded-3xl border-2 border-dashed border-slate-100 bg-white py-16 text-center">
+              <div className="rounded-[32px] border-2 border-dashed border-slate-100 bg-white/50 p-20 text-center backdrop-blur-sm">
                 <FileText className="mx-auto h-12 w-12 text-slate-200 mb-4" />
-                <p className="text-slate-400 font-bold">ไม่มีข้อมูลโครงการในขณะนี้</p>
+                <p className="text-slate-400 font-bold text-lg">ยังไม่มีโครงการในระบบ</p>
               </div>
             ) : (
               recentProjects.map((project) => (
                 <Link 
                   key={project.id} 
                   href={`/projects/${project.id}`}
-                  className="group flex items-center justify-between rounded-3xl border border-slate-100 bg-white p-5 transition-all hover:shadow-lg hover:border-indigo-100"
+                  className="group flex items-center justify-between rounded-[28px] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-xl hover:border-indigo-100"
                 >
                   <div className="flex items-center">
-                    <div className="h-14 w-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                      <FileText className="h-7 w-7" />
+                    <div className="h-16 w-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                      <FileText className="h-8 w-8" />
                     </div>
-                    <div className="ml-4">
-                      <p className="text-base font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{project.projectName}</p>
-                      <p className="text-xs text-slate-400 font-medium mt-1">
-                        {role !== "student" ? `โดย ${project.owner?.fullName}` : `อัปเดตเมื่อ ${new Date(project.updatedAt).toLocaleDateString("th-TH")}`}
-                      </p>
+                    <div className="ml-5">
+                      <p className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{project.projectName}</p>
+                      <div className="flex items-center mt-1 space-x-3">
+                        <p className="text-sm font-medium text-slate-500">
+                          {role !== "student" ? `โดย ${project.owner?.fullName}` : `อัปเดตเมื่อ ${new Date(project.updatedAt).toLocaleDateString("th-TH")}`}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center space-x-6">
                     <StatusBadge status={project.status} />
-                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">Click to view</span>
+                    <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" />
                   </div>
                 </Link>
               ))
@@ -157,48 +173,44 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Activity Score Progress */}
-        {role === "student" && (
-          <div className="lg:col-span-1 space-y-6">
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">เป้าหมายคะแนน</h3>
-            <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm relative overflow-hidden group">
-              {/* Background Glow */}
-              <div className={`absolute -right-20 -top-20 h-40 w-40 rounded-full blur-3xl transition-colors ${scoreData.total >= 85 ? 'bg-amber-400/10' : 'bg-indigo-400/10'}`} />
+        {/* Side Panel: Score or Activity */}
+        <div className="space-y-8">
+          {role === "student" && (
+            <div className="rounded-[40px] bg-slate-900 p-8 text-white shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 h-64 w-64 -translate-y-24 translate-x-24 rounded-full bg-indigo-500/20 blur-3xl group-hover:bg-indigo-500/30 transition-colors" />
               
               <div className="relative z-10 space-y-8">
                 <div className="flex items-center justify-between">
-                   <div className={`rounded-2xl p-4 ${scoreData.total >= 85 ? 'bg-amber-100 text-amber-600' : 'bg-indigo-100 text-indigo-600'}`}>
-                      <Award className="h-8 w-8" />
-                   </div>
-                   <div className="text-right">
-                      <p className="text-4xl font-black text-slate-900 tracking-tight">{scoreData.total}</p>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">คะแนนสะสม</p>
-                   </div>
+                  <h3 className="text-xl font-black tracking-tight">คะแนนสะสม</h3>
+                  <Award className="h-6 w-6 text-amber-400" />
+                </div>
+                
+                <div className="text-center py-4">
+                  <p className="text-7xl font-black tracking-tighter">{scoreData.total}</p>
+                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-3">Total Activity Points</p>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex justify-between text-xs font-black text-slate-400 uppercase tracking-widest">
-                    <span>ความก้าวหน้า</span>
-                    <span>{Math.round(scoreData.progress)}%</span>
+                  <div className="flex justify-between text-xs font-black uppercase tracking-widest text-slate-400">
+                    <span>Progress</span>
+                    <span className="text-white">{Math.min(Math.round((scoreData.total / 85) * 100), 100)}%</span>
                   </div>
-                  <div className="h-4 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-3 w-full rounded-full bg-white/10 p-0.5">
                     <div 
-                      className={`h-4 rounded-full transition-all duration-1000 ${scoreData.total >= 85 ? 'bg-gradient-to-r from-amber-400 to-amber-600' : 'bg-gradient-to-r from-indigo-500 to-indigo-600'}`} 
-                      style={{ width: `${scoreData.progress}%` }} 
+                      className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 shadow-[0_0_20px_rgba(99,102,241,0.6)] transition-all duration-1000" 
+                      style={{ width: `${Math.min((scoreData.total / 85) * 100, 100)}%` }} 
                     />
                   </div>
                 </div>
 
-                <div className={`rounded-2xl p-5 border ${scoreData.total >= 85 ? 'bg-amber-50 border-amber-100 text-amber-800' : 'bg-slate-50 border-slate-100 text-slate-600'}`}>
+                <div className={`rounded-2xl p-5 border ${scoreData.total >= 85 ? 'bg-amber-500/10 border-amber-500/20 text-amber-200' : 'bg-white/5 border-white/10 text-slate-300'}`}>
                    <p className="text-xs font-bold leading-relaxed">
                       {scoreData.total >= 85 
                         ? "ยินดีด้วย! คุณได้รับรางวัลเกียรติยศประจำปีนี้แล้ว สามารถตรวจสอบเกียรติบัตรได้ในหน้าตั้งค่า" 
-                        : `คุณต้องการอีก ${Math.max(85 - scoreData.total, 0)} คะแนนเพื่อรับรางวัลเกียรติยศ (เกณฑ์ 85 คะแนน)`}
+                        : `คุณต้องการอีก ${Math.max(85 - scoreData.total, 0)} คะแนนเพื่อรับรางวัลเกียรติยศ`}
                    </p>
                 </div>
 
-                <Link href="/activity-scores" className="flex w-full items-center justify-center rounded-2xl bg-slate-50 py-4 text-xs font-black text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-all uppercase tracking-widest">
-                   ดูประวัติคะแนนทั้งหมด <ChevronRight className="ml-2 h-4 w-4" />
                 </Link>
               </div>
             </div>
