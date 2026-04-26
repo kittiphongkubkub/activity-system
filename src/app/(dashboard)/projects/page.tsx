@@ -9,7 +9,7 @@ import { Plus, FileText } from "lucide-react";
 export default async function ProjectsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ query?: string; status?: string }>;
+  searchParams: Promise<{ search?: string; status?: string }>;
 }) {
   const { search, status } = await searchParams;
   const session = await getServerSession(authOptions);
