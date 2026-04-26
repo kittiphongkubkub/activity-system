@@ -14,15 +14,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // In a real production app, you would upload to S3 or Supabase Storage here.
-    // For this demonstration, we simulate a successful upload.
-    // We return a mock URL and file metadata.
-    
-    const mockUrl = `https://isfllxclgmfyybjdgurc.supabase.co/storage/v1/object/public/documents/${Date.now()}_${file.name}`;
+    // Convert file to Base64 for demonstration purposes
+    // This allows the file to be "stored" in the database URL field and viewed later
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const base64File = buffer.toString("base64");
+    const fileUrl = `data:${file.type};base64,${base64File}`;
 
     return NextResponse.json({
       success: true,
-      fileUrl: mockUrl,
+      fileUrl: fileUrl,
       fileName: file.name,
       fileSize: file.size,
       mimeType: file.type,
