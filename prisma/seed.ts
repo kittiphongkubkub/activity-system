@@ -24,6 +24,7 @@ async function main() {
     { email: "chair@example.com", fullName: "อาจารย์เปรมรัตน์ พูลสวัสดิ์ (ประธานหลักสูตร)", role: "program_chair", department: "สาขาวิชา CD", faculty: "คณะวิชา" },
     { email: "head@example.com", fullName: "อ. นพมาศ (หัวหน้าสาขาวิชา CD)", role: "dept_head", department: "สาขาวิชา CD", faculty: "คณะวิชา" },
     { email: "dean@example.com", fullName: "อ.ดร.จำรูญศรี พุ่มเทียน (คณบดี)", role: "dean", faculty: "คณะวิชา" },
+    { email: "committee@example.com", fullName: "คณะกรรมการประชุมคณะ (กบค.)", role: "faculty_committee", faculty: "คณะวิชา" },
     { email: "uni@example.com", fullName: "กองพัฒนานักศึกษา (สำนักงานมหาวิทยาลัย)", role: "university", department: "งานกิจกรรมนักศึกษา", faculty: "สำนักงานมหาวิทยาลัย" },
     { email: "admin@example.com", fullName: "ผู้ดูแลระบบ", role: "admin" },
   ];
@@ -97,7 +98,7 @@ async function main() {
           assigneeRole: w.role,
           status: status,
           comments: status === "approved" ? w.comm : (status === "revision_required" ? "กรุณาปรับปรุงรายละเอียดงบประมาณ" : null),
-          assigneeId: status === "approved" ? createdUsers[`${w.role === "faculty_committee" ? "head" : (w.role === "university" ? "uni" : w.role)}@example.com`]?.id : null,
+          assigneeId: status === "approved" ? createdUsers[`${w.role === "faculty_committee" ? "committee" : (w.role === "university" ? "uni" : (w.role === "program_chair" ? "chair" : (w.role === "dept_head" ? "head" : w.role)))}@example.com`]?.id : null,
           reviewedAt: status === "approved" ? new Date() : null,
         }
       });
