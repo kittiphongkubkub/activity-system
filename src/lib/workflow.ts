@@ -151,6 +151,10 @@ export async function processStepReview({
           status: docType === "027" ? "summary_under_review" : "under_review"
         },
       });
+
+      // Notify the next reviewer
+      const { notifyNextReviewer } = await import("./notifications");
+      await notifyNextReviewer(projectId, nextStep.stepName, nextStep.assigneeRole, nextStep.assigneeId);
     } else {
       const newStatus = docType === "025" ? "approved" : "completed";
       

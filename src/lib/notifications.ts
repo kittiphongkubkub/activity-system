@@ -60,3 +60,52 @@ export async function notifyStatusChange(projectId: string, status: string) {
     });
   }
 }
+
+export async function notifyNextReviewer(projectId: string, nextStepName: string, assigneeRole: string, assigneeId?: string | null) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { projectName: true, advisorId: true },
+  });
+
+  if (!project) return;
+
+  // Case 1: Targeted user (e.g. Advisor)
+  if (assigneeId) {
+    await createNotification({
+      userId: assigneeId,
+      projectId,
+      type: "approval_request",
+      title: "มีโครงการรอการอนุมัติจากคุณ",
+      message: `โครงการ "${project.projectName}" อยู่ในขั้นตอน: ${nextStepName}`,
+    });
+    return;
+  }
+
+  // Case 2: Special case for Advisor Role (use project's advisorId)
+  if (assigneeRole === "advisor" && project.advisorId) {
+    await createNotification({
+      userId: project.advisorId,
+      projectId,
+      type: "approval_request",
+      title: "มีโครงการรอการอนุมัติจากคุณ",
+      message: `โครงการ "${project.projectName}" อยู่ในขั้นตอน: ${nextStepName}`,
+    });
+    return;
+  }
+
+  // Case 3: Broadcast to Role (e.g. Dean, Program Chair)
+  const usersWithRole = await prisma.user.findMany({
+    where: { role: assigneeRole, isActive: true },
+    select: { id: true },
+  });
+
+  for (const user of usersWithRole) {
+    await createNotification({
+      userId: user.id,
+      projectId,
+      type: "approval_request",
+      title: "โครงการใหม่รอการอนุมัติ (ตามบทบาทของคุณ)",
+      message: `โครงการ "${project.projectName}" รอการพิจารณาในขั้นตอน: ${nextStepName}`,
+    });
+  }
+}

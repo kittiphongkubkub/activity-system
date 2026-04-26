@@ -48,6 +48,10 @@ export async function POST(
       await tx.workflowStep.createMany({
         data: steps.map(s => ({ ...s, projectId: id, docType: "025" }))
       });
+
+      // 3. Create Notification for First Step
+      const { notifyNextReviewer } = await import("@/lib/notifications");
+      await notifyNextReviewer(id, "อาจารย์ที่ปรึกษา", "advisor", project.advisorId);
     });
 
     return NextResponse.json({ success: true });
