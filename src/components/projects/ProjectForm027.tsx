@@ -74,6 +74,27 @@ export default function ProjectForm027({ projectId }: { projectId: string }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 pb-12">
+      {/* Download Template Alert */}
+      <div className="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 shadow-sm">
+        <div className="flex items-center">
+          <div className="rounded-lg bg-indigo-500 p-2 text-white mr-4 shadow-sm">
+            <FileText className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-indigo-900">แบบฟอร์มมาตรฐานจากทางมหาวิทยาลัย</h4>
+            <p className="text-xs text-indigo-700">ดาวน์โหลดแบบฟอร์ม มฉก.วท.027 เพื่อเตรียมข้อมูลสรุปผลการดำเนินงานโครงการ</p>
+          </div>
+        </div>
+        <a 
+          href="/forms/form-027.docx" 
+          download 
+          className="flex items-center rounded-lg bg-white px-4 py-2 text-sm font-bold text-indigo-600 shadow-sm border border-indigo-200 hover:bg-indigo-50 transition-colors"
+        >
+          <Upload className="mr-2 h-4 w-4 rotate-180" />
+          ดาวน์โหลดไฟล์ .docx
+        </a>
+      </div>
+
       {error && (
         <div className="flex items-center rounded-lg bg-red-50 p-4 text-red-700">
           <AlertCircle className="mr-2 h-5 w-5" />
