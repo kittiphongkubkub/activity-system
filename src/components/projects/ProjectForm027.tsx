@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { project027Schema, Project027Input } from "@/lib/validations/project027";
 import { Send, Loader2, AlertCircle, ArrowRight, Upload, X, FileText } from "lucide-react";
 
-export default function ProjectForm027({ projectId }: { projectId: string }) {
+export default function ProjectForm027({ projectId, initialData }: { projectId: string, initialData?: any }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -18,9 +18,20 @@ export default function ProjectForm027({ projectId }: { projectId: string }) {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<Project027Input>({
     resolver: zodResolver(project027Schema) as any,
+    defaultValues: initialData || {},
   });
+
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData);
+      if (initialData.attachments) {
+        setAttachments(initialData.attachments);
+      }
+    }
+  }, [initialData, reset]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

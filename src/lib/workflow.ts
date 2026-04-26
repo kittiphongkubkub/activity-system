@@ -180,12 +180,13 @@ export async function processStepReview({
       },
     });
 
+    const newStatus = docType === "027" ? "summary_revision_required" : "revision_required";
     await prisma.project.update({
       where: { id: projectId },
-      data: { status: "revision_required" },
+      data: { status: newStatus },
     });
 
-    await notifyStatusChange(projectId, "revision_required");
+    await notifyStatusChange(projectId, newStatus);
   } else if (decision === "reject") {
     await prisma.workflowStep.update({
       where: { id: stepId },
@@ -197,11 +198,12 @@ export async function processStepReview({
       },
     });
 
+    const newStatus = docType === "027" ? "summary_rejected" : "rejected";
     await prisma.project.update({
       where: { id: projectId },
-      data: { status: "rejected" },
+      data: { status: newStatus },
     });
 
-    await notifyStatusChange(projectId, "rejected");
+    await notifyStatusChange(projectId, newStatus);
   }
 }

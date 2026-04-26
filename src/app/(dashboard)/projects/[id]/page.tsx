@@ -78,6 +78,16 @@ export default async function ProjectDetailPage(props: {
             ส่งสรุปผล (027)
           </Link>
         )}
+
+        {project.status === "summary_revision_required" && (
+          <Link
+            href={`/projects/${project.id}/summary`}
+            className="flex items-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
+          >
+            <Send className="mr-2 h-4 w-4" />
+            แก้ไขสรุปผล (027)
+          </Link>
+        )}
       </div>
     </div>
 
