@@ -33,9 +33,15 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
   useEffect(() => {
     fetch("/api/users/advisors")
       .then((res) => res.json())
-      .then((data) => setAdvisors(data))
+      .then((data) => {
+        setAdvisors(data);
+        // Reset form after advisors list is ready to ensure select value is caught
+        if (initialData) {
+          reset(initialData);
+        }
+      })
       .catch(err => console.error("Failed to load advisors", err));
-  }, []);
+  }, [initialData, reset]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
