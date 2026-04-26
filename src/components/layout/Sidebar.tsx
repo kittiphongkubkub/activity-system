@@ -12,7 +12,9 @@ import {
   LogOut,
   ShieldCheck,
   Bell,
-  Sparkles
+  Sparkles,
+  Compass,
+  Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession, signOut } from "next-auth/react";
@@ -47,6 +49,12 @@ const Sidebar = () => {
       icon: LayoutDashboard,
       href: "/",
       active: pathname === "/",
+    },
+    {
+      label: "โครงการทั้งหมด",
+      icon: Search,
+      href: "/projects/explore",
+      active: pathname === "/projects/explore",
     },
     {
       label: "จัดการระบบ (Admin)",
