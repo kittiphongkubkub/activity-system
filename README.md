@@ -1,8 +1,8 @@
 <div align="center">
 
-# ✨ ActivityFlow ✨
+# ActivityFlow
 ### Digital Activity Project Management System
-*ระบบจัดการเอกสารโครงการกิจกรรมนักศึกษาแบบดิจิทัลครบวงจร*
+*University Project Workflow & Activity Scoring Platform*
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -11,88 +11,92 @@
 
 ---
 
-<p align="center">
-  <b>ActivityFlow</b> คือระบบดิจิทัลที่ออกแบบมาเพื่อยกระดับการจัดการโครงการกิจกรรมนักศึกษา <br/>
-  ตั้งแต่การเขียนขออนุมัติ (กนพ.025) ไปจนถึงการสรุปผล (กนพ.027) และการให้คะแนนกิจกรรมโดยอัตโนมัติ
-</p>
+ActivityFlow is a comprehensive digital system designed to streamline university student project workflows,
+from initial proposal submission to final reporting and automated activity scoring.
 
-[Key Features](#-key-features) • [Tech Stack](#%EF%B8%8F-technology-stack) • [Getting Started](#-getting-started) • [Screenshots](#-preview)
+[Key Features](#key-features) • [Tech Stack](#technology-stack) • [Getting Started](#getting-started) • [Default Users](#default-test-users)
 
 </div>
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-*   **🛡️ Multi-Stage Workflow (RBAC)**
-    *   รองรับทุกระดับตั้งแต่ นักศึกษา, อาจารย์ที่ปรึกษา, หัวหน้าภาควิชา, จนถึงคณบดี
-    *   ระบบสิทธิการใช้งานที่ชัดเจนและปลอดภัย (NextAuth.js)
-*   **📝 Digital Forms (กนพ.025 / 027)**
-    *   สร้าง แก้ไข และส่งโครงการผ่านระบบออนไลน์ 100%
-    *   ตรวจสอบสถานะแบบ Real-time ไม่ต้องเดินตามหาเอกสาร
-*   **📊 Automated Scoring**
-    *   ประมวลผลคะแนนกิจกรรม (Activity Scores) ให้อัตโนมัติเมื่อปิดโครงการ
-    *   รายงานสรุปผลคะแนนรายบุคคล
-*   **🔔 Real-time Notifications**
-    *   แจ้งเตือนทุกครั้งเมื่อมีการขยับสถานะ หรือต้องการการแก้ไข (Revision Required)
-*   **📄 PDF Generation**
-    *   ส่งออกเอกสารในรูปแบบ PDF ที่ถูกต้องตามระเบียบของมหาวิทยาลัย
+### Workflow Management
+*   **Role-Based Access Control (RBAC)**
+    *   Full support for Students, Advisors, Department Heads, and Deans.
+    *   Secure authentication and session management via NextAuth.js.
+*   **Digital Project Lifecycle**
+    *   End-to-end digital submission for project proposals and summaries.
+    *   Real-time status tracking with automated multi-stage approval workflows.
+
+### Automated Scoring & Notifications
+*   **Activity Scoring System**
+    *   Automated point calculation and distribution upon project completion.
+    *   Individual student activity score reports and progress tracking.
+*   **Notification Engine**
+    *   Automated alerts for status updates, revision requests, and approvals.
+
+### Document Management
+*   **PDF Generation**
+    *   Export project documents into standardized university PDF formats.
+    *   Clean, print-ready document layouts.
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Layer | Technologies |
 | :--- | :--- |
 | **Frontend** | Next.js 15 (App Router), Tailwind CSS, Lucide React, Framer Motion |
 | **Backend** | Next.js API Routes, Server Actions |
-| **Database** | Prisma ORM, SQLite (Dev) / PostgreSQL (Prod) |
-| **Auth** | NextAuth.js |
+| **Database** | Prisma ORM, SQLite (Development), PostgreSQL (Production Ready) |
+| **Authentication** | NextAuth.js |
 | **Validation** | Zod |
 
 ---
 
-## 🏁 Getting Started
+## Getting Started
 
-### 1. การติดตั้ง (Installation)
+### 1. Installation
 ```bash
 git clone https://github.com/kittiphongkubkub/activity-system.git
 cd activity-system
 npm install
 ```
 
-### 2. ตั้งค่าฐานข้อมูล (Database Setup)
-ตรวจสอบไฟล์ `.env` ของคุณ (ค่าเริ่มต้นเป็น SQLite) จากนั้นรันคำสั่ง:
+### 2. Database Configuration
+Ensure your `.env` file is properly configured. For the initial setup:
 ```bash
 npx prisma db push
 npm run db:seed
 ```
 
-### 3. เริ่มต้นระบบ (Run Development Server)
+### 3. Execution
 ```bash
 npm run dev
 ```
-เปิดบราวเซอร์ไปที่ [http://localhost:3000](http://localhost:3000)
+Access the application at [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 👥 Default Test Users
+## Default Test Users
 
 | Role | Email | Password |
 | :--- | :--- | :--- |
-| **Student** | `student@example.com` | `password123` |
-| **Advisor** | `advisor@example.com` | `password123` |
-| **Admin** | `admin@example.com` | `password123` |
-| **Dean** | `dean@example.com` | `password123` |
+| Student | `student@example.com` | `password123` |
+| Advisor | `advisor@example.com` | `password123` |
+| Admin | `admin@example.com` | `password123` |
+| Dean | `dean@example.com` | `password123` |
 
 ---
 
-## 📸 Preview (Screenshots)
+## System Preview
 
-*(กำลังอัปเดตรูปภาพประกอบ...)*
+*Screenshots and demonstrations are currently being updated.*
 
 ---
 
 <div align="center">
-  <sub>Built with ❤️ for University Students</sub>
+  <sub>Advanced Digital Solution for University Activity Management</sub>
 </div>
