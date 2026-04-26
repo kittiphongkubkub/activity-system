@@ -2,7 +2,7 @@ import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 import { StatusBadge } from "@/components/projects/StatusBadge";
 import { WorkflowTimeline } from "@/components/projects/WorkflowTimeline";
-import { Calendar, MapPin, Users, DollarSign, ArrowLeft, Send, Printer, AlertCircle } from "lucide-react";
+import { Calendar, MapPin, Users, DollarSign, ArrowLeft, Send, Printer, AlertCircle, ExternalLink, FileText } from "lucide-react";
 import Link from "next/link";
 import SubmitButton from "./SubmitButton";
 import ReviewForm from "@/components/approvals/ReviewForm";
@@ -24,6 +24,7 @@ export default async function ProjectDetailPage(props: {
     include: {
       workflowSteps: true,
       advisor: true,
+      documents: true,
     },
   });
 
@@ -109,7 +110,38 @@ export default async function ProjectDetailPage(props: {
             </div>
           </section>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Attachments Section */}
+          {project.documents.length > 0 && (
+            <section className="rounded-xl border bg-white p-6 shadow-sm mt-6">
+              <h3 className="mb-4 text-lg font-bold text-slate-800 border-b pb-2">เอกสารแนบประกอบโครงการ</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {project.documents.map((doc) => (
+                  <a
+                    key={doc.id}
+                    href={doc.fileUrl || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-100 transition-all group"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-lg bg-white shadow-sm text-indigo-600 group-hover:scale-110 transition-transform">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div className="truncate max-w-[150px]">
+                        <p className="text-sm font-bold text-slate-800 truncate">{doc.fileName}</p>
+                        <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">
+                          {(doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) : 0)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="rounded-xl border bg-white p-4 shadow-sm flex items-center">
               <div className="rounded-lg bg-indigo-50 p-2 mr-4">
                 <Calendar className="h-5 w-5 text-indigo-600" />
