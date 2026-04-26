@@ -211,6 +211,8 @@ export default async function DashboardPage() {
                    </p>
                 </div>
 
+                <Link href="/activity-scores" className="flex items-center justify-center w-full py-4 rounded-2xl bg-white/10 font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10">
+                  View Full Report
                 </Link>
               </div>
             </div>
