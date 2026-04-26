@@ -168,7 +168,11 @@ const Sidebar = () => {
         </div>
         
         <button
-          onClick={() => signOut()}
+          onClick={() => {
+            if (confirm("คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?")) {
+              signOut();
+            }
+          }}
           className="group flex w-full items-center rounded-2xl px-5 py-4 text-sm font-bold text-slate-400 transition-all duration-300 hover:bg-rose-500/10 hover:text-rose-500"
         >
           <div className="mr-4 rounded-lg bg-slate-900 p-2 group-hover:bg-rose-500/20 transition-colors">

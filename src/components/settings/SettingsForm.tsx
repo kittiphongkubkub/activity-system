@@ -31,6 +31,48 @@ export default function SettingsForm({ user }: SettingsFormProps) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setMessage({ type: "error", text: "รหัสผ่านใหม่ไม่ตรงกัน" });
+      return;
+    }
+    if (newPassword.length < 8) {
+      setMessage({ type: "error", text: "รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 8 ตัวอักษร" });
+      return;
+    }
+
+    setIsChangingPassword(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      const res = await fetch("/api/user/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({ type: "success", text: "เปลี่ยนรหัสผ่านสำเร็จแล้ว" });
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        setMessage({ type: "error", text: data.error || "เกิดข้อผิดพลาด" });
+      }
+    } catch (err) {
+      setMessage({ type: "error", text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้" });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   const [notifications, setNotifications] = useState([
     { id: 'email', title: "อีเมลแจ้งเตือนสถานะ", desc: "รับอีเมลเมื่อมีการเปลี่ยนแปลงสถานะโครงการ", enabled: true },
     { id: 'approval', title: "แจ้งเตือนการอนุมัติ", desc: "รับการแจ้งเตือนในระบบเมื่ออาจารย์อนุมัติงาน", enabled: true },
@@ -97,65 +139,93 @@ export default function SettingsForm({ user }: SettingsFormProps) {
           <Key className="h-5 w-5" />
           <h2 className="text-xl font-black uppercase tracking-wider">เปลี่ยนรหัสผ่าน</h2>
         </div>
-        <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm space-y-6">
-          <div className="grid grid-cols-1 gap-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">รหัสผ่านปัจจุบัน</label>
-              <div className="relative">
-                <input 
-                  type={showCurrentPassword ? "text" : "password"} 
-                  placeholder="••••••••" 
-                  className="w-full rounded-2xl border border-slate-200 px-5 py-3 text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all" 
-                />
-                <button 
-                  type="button"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute right-5 top-3.5 text-slate-400 hover:text-indigo-600 transition-colors"
-                >
-                  {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+        
+        <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm">
+          <form onSubmit={handlePasswordChange} className="space-y-6">
+            {message.text && (
+              <div className={`p-4 rounded-xl text-sm font-bold flex items-center ${
+                message.type === "success" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+              }`}>
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                {message.text}
               </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            )}
+
+            <div className="grid grid-cols-1 gap-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">รหัสผ่านใหม่</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">รหัสผ่านปัจจุบัน</label>
                 <div className="relative">
-                  <input 
-                    type={showNewPassword ? "text" : "password"} 
-                    placeholder="อย่างน้อย 8 ตัวอักษร" 
-                    className="w-full rounded-2xl border border-slate-200 px-5 py-3 text-sm focus:border-indigo-500 outline-none" 
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-5 py-3 text-sm font-bold outline-none focus:border-indigo-500 focus:bg-white transition-all pr-12"
+                    placeholder="••••••••"
                   />
-                  <button 
+                  <button
                     type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-5 top-3.5 text-slate-400 hover:text-indigo-600 transition-colors"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
                   >
-                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ยืนยันรหัสผ่านใหม่</label>
-                <div className="relative">
-                  <input 
-                    type={showConfirmPassword ? "text" : "password"} 
-                    placeholder="กรอกรหัสผ่านใหม่อีกครั้ง" 
-                    className="w-full rounded-2xl border border-slate-200 px-5 py-3 text-sm focus:border-indigo-500 outline-none" 
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-5 top-3.5 text-slate-400 hover:text-indigo-600 transition-colors"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">รหัสผ่านใหม่</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-5 py-3 text-sm font-bold outline-none focus:border-indigo-500 focus:bg-white transition-all pr-12"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ยืนยันรหัสผ่านใหม่</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-5 py-3 text-sm font-bold outline-none focus:border-indigo-500 focus:bg-white transition-all pr-12"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <button className="rounded-2xl bg-indigo-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">
-            อัปเดตรหัสผ่าน
-          </button>
+
+            <button
+              type="submit"
+              disabled={isChangingPassword}
+              className="rounded-2xl bg-indigo-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all disabled:opacity-50"
+            >
+              {isChangingPassword ? "กำลังประมวลผล..." : "อัปเดตรหัสผ่าน"}
+            </button>
+          </form>
         </div>
       </section>
 
