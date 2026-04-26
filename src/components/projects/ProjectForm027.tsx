@@ -17,7 +17,7 @@ export default function ProjectForm027({ projectId }: { projectId: string }) {
     handleSubmit,
     formState: { errors },
   } = useForm<Project027Input>({
-    resolver: zodResolver(project027Schema),
+    resolver: zodResolver(project027Schema) as any,
   });
 
   const onSubmit = async (data: Project027Input) => {

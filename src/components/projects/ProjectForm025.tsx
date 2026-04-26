@@ -19,7 +19,7 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
     formState: { errors },
     reset,
   } = useForm<Project025Input>({
-    resolver: zodResolver(project025Schema),
+    resolver: zodResolver(project025Schema) as any,
     defaultValues: initialData || {
       academicYear: "2567",
       semester: 1,
