@@ -8,9 +8,7 @@ export const project025Schema = z.object({
     "กีฬา", 
     "ทำนุบำรุงศิลปวัฒนธรรม", 
     "อื่นๆ"
-  ], {
-    required_error: "กรุณาเลือกประเภทโครงการ",
-  }),
+  ]),
   description: z.string().min(20, "กรุณาอธิบายรายละเอียดโครงการอย่างน้อย 20 ตัวอักษร"),
   objectives: z.string().min(10, "กรุณาระบุวัตถุประสงค์โครงการ"),
   expectedOutcome: z.string().min(10, "กรุณาระบุผลที่คาดว่าจะได้รับ"),
@@ -24,15 +22,9 @@ export const project025Schema = z.object({
   semester: z.coerce.number().min(1).max(3, "ภาคการศึกษาต้องเป็น 1, 2 หรือ 3"),
   
   // New fields based on scoring criteria
-  organizationType: z.enum(["union", "club", "working_group"], {
-    required_error: "กรุณาเลือกประเภทองค์กรที่จัด",
-  }),
-  studentRole: z.enum(["president", "vp", "committee", "operator", "participant"], {
-    required_error: "กรุณาเลือกบทบาทของคุณในโครงการ",
-  }),
-  impactLevel: z.enum(["national", "community", "university", "faculty", "personal"], {
-    required_error: "กรุณาเลือกระดับผลกระทบของโครงการ",
-  }),
+  organizationType: z.enum(["union", "club", "working_group"]),
+  studentRole: z.enum(["president", "vp", "committee", "operator", "participant"]),
+  impactLevel: z.enum(["national", "community", "university", "faculty", "personal"]),
 });
 
 export type Project025Input = z.infer<typeof project025Schema>;
