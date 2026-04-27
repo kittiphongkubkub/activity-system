@@ -2,7 +2,20 @@ import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 import { StatusBadge } from "@/components/projects/StatusBadge";
 import { WorkflowTimeline } from "@/components/projects/WorkflowTimeline";
-import { Calendar, MapPin, Users, DollarSign, ArrowLeft, Send, Printer, AlertCircle, ExternalLink, FileText } from "lucide-react";
+import { AuditTimeline } from "@/components/projects/AuditTimeline";
+import { 
+  Calendar, 
+  MapPin, 
+  Users, 
+  DollarSign, 
+  ArrowLeft, 
+  Send, 
+  Printer, 
+  AlertCircle, 
+  ExternalLink, 
+  FileText,
+  History
+} from "lucide-react";
 import Link from "next/link";
 import SubmitButton from "./SubmitButton";
 import ReviewForm from "@/components/approvals/ReviewForm";
@@ -25,6 +38,19 @@ export default async function ProjectDetailPage(props: {
       workflowSteps: true,
       advisor: true,
       documents: true,
+      auditLogs: {
+        include: {
+          user: {
+            select: {
+              fullName: true,
+              role: true,
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }
     },
   });
 
@@ -194,46 +220,39 @@ export default async function ProjectDetailPage(props: {
             </div>
           </div>
 
-          {/* Revision History Section */}
-          {project.workflowSteps.some(s => s.comments) && (
-            <section className="rounded-xl border border-amber-100 bg-amber-50/30 p-6 shadow-sm overflow-hidden relative mt-8">
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                <Send className="h-24 w-24 rotate-12" />
+          {/* Audit History Timeline (Historical) */}
+          <section className="rounded-[32px] border bg-slate-50/50 p-8 shadow-sm mt-8 border-slate-200/60">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center">
+                  <History className="mr-3 h-6 w-6 text-indigo-600" />
+                  ประวัติการดำเนินการ (Audit Logs)
+                </h3>
+                <p className="text-xs font-medium text-slate-500 mt-1">ติดตามทุกความเคลื่อนไหวและระยะเวลาในแต่ละขั้นตอน</p>
               </div>
-              <h3 className="mb-4 text-lg font-black text-amber-800 flex items-center">
-                <AlertCircle className="mr-2 h-5 w-5 text-amber-600" />
-                ประวัติการสั่งแก้ไขจากผู้อนุมัติ
-              </h3>
-              <div className="space-y-4 relative z-10">
-                {project.workflowSteps
-                  .filter(s => s.comments)
-                  .sort((a, b) => new Date(b.reviewedAt || 0).getTime() - new Date(a.reviewedAt || 0).getTime())
-                  .map((step, idx) => (
-                    <div key={idx} className="bg-white rounded-2xl p-4 border border-amber-100 shadow-sm transition-all hover:scale-[1.01]">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">
-                          {step.stepName}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400">
-                          {step.reviewedAt ? new Date(step.reviewedAt).toLocaleDateString("th-TH", {
-                            day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit'
-                          }) : "-"}
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-700 leading-relaxed font-medium italic break-words">
-                        "{step.comments}"
-                      </p>
-                    </div>
-                  ))}
+              <div className="flex items-center space-x-2">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Live Updates</span>
               </div>
-            </section>
-          )}
+            </div>
+            
+            {project.auditLogs.length > 0 ? (
+              <AuditTimeline logs={project.auditLogs as any} />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 bg-white rounded-3xl border border-dashed border-slate-200">
+                <Clock className="h-12 w-12 text-slate-200 mb-4" />
+                <p className="text-sm font-bold text-slate-400 italic">
+                  ยังไม่มีประวัติการดำเนินการย้อนหลัง
+                </p>
+              </div>
+            )}
+          </section>
         </div>
 
         {/* Sidebar: Workflow & Info */}
         <div className="space-y-6">
           <section className="rounded-xl border bg-white p-6 shadow-sm">
-            <h3 className="mb-6 text-lg font-bold text-slate-800 border-b pb-2">ขั้นตอนการอนุมัติ</h3>
+            <h3 className="mb-6 text-lg font-bold text-slate-800 border-b pb-2">ขั้นตอนการอนุมัติปัจจุบัน</h3>
             {project.workflowSteps.length > 0 ? (
               <WorkflowTimeline steps={project.workflowSteps as any} />
             ) : (

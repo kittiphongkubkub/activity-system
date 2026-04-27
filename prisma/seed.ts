@@ -48,6 +48,10 @@ async function main() {
     { name: "โครงการจิตอาสาทำความสะอาดวัด", type: "บริการสังคม", status: "approved", step: null, owner: "student2@example.com", role: "participant", org: "club", impact: "community" },
     { name: "งานเปิดตัวนวัตกรรมนักศึกษา", type: "วิชาการ", status: "under_review", step: "อาจารย์ที่ปรึกษา", owner: "student@example.com", role: "president", org: "union", impact: "national" },
     { name: "กีฬาอีสปอร์ตชิงแชมป์มหาวิทยาลัย", type: "กีฬา", status: "under_review", step: "ประชุมคณะ (กบค.)", owner: "student3@example.com", role: "committee", org: "union", impact: "university" },
+    // --- 027 MOCKUP DATA ---
+    { name: "โครงการอบรมเชิงปฏิบัติการ Internet of Things (IoT)", type: "วิชาการ", status: "approved", step: null, owner: "student@example.com", role: "president", org: "working_group", impact: "university" },
+    { name: "ค่ายคอมพิวเตอร์และเทคโนโลยีเพื่อน้อง", type: "บริการสังคม", status: "summary_under_review", step: "อาจารย์ที่ปรึกษา (สรุปผล)", owner: "student2@example.com", role: "vp", org: "club", impact: "community" },
+    { name: "กิจกรรมวิ่งการกุศลเพื่อการศึกษา", type: "กีฬา", status: "summary_revision_required", step: "อาจารย์ที่ปรึกษา (สรุปผล)", owner: "student3@example.com", role: "committee", org: "working_group", impact: "community" },
   ];
 
   console.log("Seeding projects and approval logs...");
@@ -69,8 +73,8 @@ async function main() {
       }
     });
 
-    // Add Approval History for each project
-    const workflow = [
+    // --- 025 Workflow (Always exists for these statuses) ---
+    const workflow025 = [
       { order: 1, name: "อาจารย์ที่ปรึกษา", role: "advisor", comm: "เห็นชอบในหลักการ" },
       { order: 2, name: "ประธานหลักสูตร", role: "program_chair", comm: "โครงการน่าสนใจมาก ผ่านครับ" },
       { order: 3, name: "หัวหน้าสาขาวิชา", role: "dept_head", comm: "สนับสนุนงบประมาณตามเสนอ" },
@@ -79,15 +83,15 @@ async function main() {
       { order: 6, name: "มหาวิทยาลัย", role: "university", comm: "รับทราบและอนุมัติในระบบ" },
     ];
 
-    const currentStepIdx = workflow.findIndex(w => w.name === pData.step);
-    const stopIdx = pData.status === "completed" ? 6 : (currentStepIdx === -1 ? 0 : currentStepIdx);
+    const currentStep025Idx = workflow025.findIndex(w => w.name === pData.step);
+    const stopIdx025 = (pData.status === "completed" || pData.status.startsWith("summary") || pData.status === "approved") ? 6 : (currentStep025Idx === -1 ? 0 : currentStep025Idx);
 
-    for (let i = 0; i < workflow.length; i++) {
-      const w = workflow[i];
+    for (let i = 0; i < workflow025.length; i++) {
+      const w = workflow025[i];
       let status = "pending";
-      if (i < stopIdx) status = "approved";
-      else if (i === stopIdx && pData.status === "under_review") status = "in_review";
-      else if (i === stopIdx && pData.status === "revision_required") status = "revision_required";
+      if (i < stopIdx025) status = "approved";
+      else if (i === stopIdx025 && pData.status === "under_review") status = "in_review";
+      else if (i === stopIdx025 && pData.status === "revision_required") status = "revision_required";
 
       await prisma.workflowStep.create({
         data: {
@@ -104,6 +108,96 @@ async function main() {
       });
     }
 
+    // --- 027 Workflow & Summary (If applicable) ---
+    if (pData.status.startsWith("summary_") || pData.status === "completed") {
+      const workflow027 = [
+        { order: 1, name: "อาจารย์ที่ปรึกษา (สรุปผล)", role: "advisor", comm: "ผลการดำเนินงานเป็นไปตามแผน" },
+        { order: 2, name: "ประธานหลักสูตร (สรุปผล)", role: "program_chair", comm: "เรียบร้อยดีครับ" },
+        { order: 3, name: "หัวหน้าสาขาวิชา (สรุปผล)", role: "dept_head", comm: "รับทราบผลการดำเนินงาน" },
+        { order: 4, name: "ประชุมคณะ (สรุปผล)", role: "faculty_committee", comm: "รับทราบ" },
+        { order: 5, name: "คณบดี (สรุปผล)", role: "dean", comm: "รับทราบผลการดำเนินงาน" },
+        { order: 6, name: "มหาวิทยาลัย (สรุปผล)", role: "university", comm: "บันทึกข้อมูลเรียบร้อย" },
+      ];
+
+      const currentStep027Idx = workflow027.findIndex(w => w.name === pData.step);
+      const stopIdx027 = pData.status === "completed" ? 6 : (currentStep027Idx === -1 ? 0 : currentStep027Idx);
+
+      for (let i = 0; i < workflow027.length; i++) {
+        const w = workflow027[i];
+        let status = "pending";
+        if (i < stopIdx027) status = "approved";
+        else if (i === stopIdx027 && pData.status === "summary_under_review") status = "in_review";
+        else if (i === stopIdx027 && pData.status === "summary_revision_required") status = "revision_required";
+
+        await prisma.workflowStep.create({
+          data: {
+            projectId: project.id,
+            docType: "027",
+            stepOrder: w.order,
+            stepName: w.name,
+            assigneeRole: w.role,
+            status: status,
+            comments: status === "approved" ? w.comm : (status === "summary_revision_required" ? "กรุณาแนบรูปภาพกิจกรรมเพิ่มเติม" : null),
+            assigneeId: status === "approved" ? createdUsers[`${w.role === "faculty_committee" ? "committee" : (w.role === "university" ? "uni" : (w.role === "program_chair" ? "chair" : (w.role === "dept_head" ? "head" : w.role)))}@example.com`]?.id : null,
+            reviewedAt: status === "approved" ? new Date() : null,
+          }
+        });
+      }
+
+      // Create Project Summary
+      await prisma.projectSummary.create({
+        data: {
+          projectId: project.id,
+          actualStartDate: new Date(),
+          actualEndDate: new Date(),
+          actualLocation: "สถานที่จัดงานจริง",
+          actualParticipants: 50,
+          budgetUsed: Math.floor(Math.random() * 10000),
+          outcomeSummary: "โครงการสำเร็จลุล่วงตามวัตถุประสงค์ มีนักศึกษาให้ความสนใจเป็นจำนวนมาก",
+          problemsFaced: "ไม่มี",
+          status: pData.status === "completed" ? "completed" : "submitted",
+          submittedBy: createdUsers[pData.owner].id,
+          submittedAt: new Date(),
+        }
+      });
+
+      // Create Audit Logs for mockup data
+      await prisma.auditLog.createMany({
+        data: [
+          {
+            projectId: project.id,
+            userId: createdUsers[pData.owner].id,
+            action: "submit",
+            fromStatus: "draft",
+            toStatus: "submitted",
+            stepName: "นักศึกษา",
+            createdAt: new Date(Date.now() - 86400000 * 5), // 5 days ago
+          },
+          {
+            projectId: project.id,
+            userId: createdUsers["advisor@example.com"].id,
+            action: "approve",
+            fromStatus: "submitted",
+            toStatus: "under_review",
+            stepName: "อาจารย์ที่ปรึกษา",
+            createdAt: new Date(Date.now() - 86400000 * 4), // 4 days ago
+          }
+        ]
+      });
+    } else if (pData.status === "approved" || pData.status === "under_review") {
+       await prisma.auditLog.create({
+        data: {
+          projectId: project.id,
+          userId: createdUsers[pData.owner].id,
+          action: "submit",
+          fromStatus: "draft",
+          toStatus: "submitted",
+          stepName: "นักศึกษา",
+          createdAt: new Date(Date.now() - 86400000 * 2), // 2 days ago
+        }
+      });
+    }
+
     // Award scores for completed projects
     if (pData.status === "completed") {
       await prisma.activityScore.create({
@@ -113,16 +207,6 @@ async function main() {
           score: Math.floor(Math.random() * 15) + 10,
           activityType: pData.type,
           notes: `คะแนนสะสมจากโครงการ ${pData.name}`,
-        }
-      });
-
-      await prisma.projectSummary.create({
-        data: {
-          projectId: project.id,
-          status: "completed",
-          budgetUsed: Math.floor(Math.random() * 10000),
-          outcomeSummary: "โครงการสำเร็จลุล่วงตามวัตถุประสงค์",
-          problemsFaced: "ไม่มี",
         }
       });
     }
@@ -169,6 +253,7 @@ async function main() {
           { userId: user.id, type: "score_awarded", title: "คุณได้รับคะแนนกิจกรรมใหม่", message: "คะแนนจากโครงการสืบสานประเพณีสงกรานต์ถูกบันทึกแล้ว (+15 คะแนน)" },
           { userId: user.id, type: "status_change", title: "โครงการของคุณถูกอนุมัติแล้ว", message: "โครงการกีฬาอีสปอร์ตผ่านการอนุมัติระดับคณะแล้ว" },
           { userId: user.id, type: "status_change", title: "กรุณาแก้ไขโครงการ", message: "อ. เปรม สั่งแก้ไขโครงการ Workshop Python" },
+          { userId: user.id, type: "status_change", title: "กรุณาแก้ไขสรุปผลโครงการ", message: "โครงการกิจกรรมวิ่งการกุศลฯ ถูกส่งกลับมาแก้ไขสรุปผล (027)" },
         ]
       });
     } else if (user.role === "advisor" || user.role === "program_chair" || user.role === "dept_head") {
@@ -176,9 +261,11 @@ async function main() {
         data: [
           { userId: user.id, type: "status_change", title: "มีโครงการใหม่รอการอนุมัติ", message: "นักศึกษาได้ส่งโครงการ AI Seminar 2024 มาถึงคุณแล้ว" },
           { userId: user.id, type: "status_change", title: "มีการแก้ไขโครงการ", message: "นายสมชายได้แก้ไขโครงการและส่งกลับมาให้คุณตรวจอีกครั้ง" },
+          { userId: user.id, type: "status_change", title: "มีสรุปผลโครงการรอการอนุมัติ (027)", message: "โครงการค่ายคอมพิวเตอร์ฯ ส่งสรุปผลมาถึงคุณแล้ว" },
         ]
       });
-    } else if (user.role === "dean" || user.role === "university") {
+    }
+ else if (user.role === "dean" || user.role === "university") {
       await prisma.notification.createMany({
         data: [
           { userId: user.id, type: "status_change", title: "โครงการระดับชาติรอการลงนาม", message: "งานกีฬาสัมพันธ์ 9 สถาบัน ผ่านการกรองจากคณะแล้ว รอคุณพิจารณา" },

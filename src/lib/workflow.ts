@@ -31,7 +31,7 @@ const PARTICIPATION_SCORES: Record<string, number> = {
   participant: 1,
 };
 
-export async function createWorkflowSteps(projectId: string, docType: "025" | "027") {
+export async function createWorkflowSteps(projectId: string, docType: "025" | "027", userId?: string) {
   await prisma.workflowStep.deleteMany({
     where: { projectId, docType },
   });
@@ -44,6 +44,21 @@ export async function createWorkflowSteps(projectId: string, docType: "025" | "0
     assigneeRole: role.assignee_role,
     status: index === 0 ? "in_review" : "pending",
   }));
+
+  // Create audit log for submission/resubmission
+  if (userId) {
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    await prisma.auditLog.create({
+      data: {
+        projectId,
+        userId,
+        action: docType === "027" ? "summary_submit" : "submit",
+        fromStatus: project?.status,
+        toStatus: docType === "027" ? "summary_submitted" : "submitted",
+        stepName: "ระบบ",
+      }
+    });
+  }
 
   return await prisma.workflowStep.createMany({
     data: steps,
@@ -130,6 +145,7 @@ export async function processStepReview({
       },
     });
 
+    let finalStatus = currentStep.project.status;
     const nextStep = await prisma.workflowStep.findFirst({
       where: {
         projectId,
@@ -144,11 +160,12 @@ export async function processStepReview({
         data: { status: "in_review" },
       });
       
+      finalStatus = docType === "027" ? "summary_under_review" : "under_review";
       await prisma.project.update({
         where: { id: projectId },
         data: { 
           currentStep: nextStep.stepName,
-          status: docType === "027" ? "summary_under_review" : "under_review"
+          status: finalStatus
         },
       });
 
@@ -156,19 +173,31 @@ export async function processStepReview({
       const { notifyNextReviewer } = await import("./notifications");
       await notifyNextReviewer(projectId, nextStep.stepName, nextStep.assigneeRole, nextStep.assigneeId);
     } else {
-      const newStatus = docType === "025" ? "approved" : "completed";
+      finalStatus = docType === "025" ? "approved" : "completed";
       
       await prisma.project.update({
         where: { id: projectId },
-        data: { status: newStatus, currentStep: null },
+        data: { status: finalStatus, currentStep: null },
       });
 
-      if (newStatus === "completed") {
+      if (finalStatus === "completed") {
         await rewardActivityScore(projectId);
       }
       
-      await notifyStatusChange(projectId, newStatus);
+      await notifyStatusChange(projectId, finalStatus);
     }
+
+    await prisma.auditLog.create({
+      data: {
+        projectId,
+        userId: approverId,
+        action: "approve",
+        fromStatus: currentStep.project.status,
+        toStatus: finalStatus,
+        comments,
+        stepName: currentStep.stepName,
+      }
+    });
   } else if (decision === "revision") {
     await prisma.workflowStep.update({
       where: { id: stepId },
@@ -181,6 +210,18 @@ export async function processStepReview({
     });
 
     const newStatus = docType === "027" ? "summary_revision_required" : "revision_required";
+
+    await prisma.auditLog.create({
+      data: {
+        projectId,
+        userId: approverId,
+        action: "request_revision",
+        fromStatus: currentStep.project.status,
+        toStatus: newStatus,
+        comments,
+        stepName: currentStep.stepName,
+      }
+    });
     await prisma.project.update({
       where: { id: projectId },
       data: { status: newStatus },
@@ -199,6 +240,18 @@ export async function processStepReview({
     });
 
     const newStatus = docType === "027" ? "summary_rejected" : "rejected";
+
+    await prisma.auditLog.create({
+      data: {
+        projectId,
+        userId: approverId,
+        action: "reject",
+        fromStatus: currentStep.project.status,
+        toStatus: newStatus,
+        comments,
+        stepName: currentStep.stepName,
+      }
+    });
     await prisma.project.update({
       where: { id: projectId },
       data: { status: newStatus },

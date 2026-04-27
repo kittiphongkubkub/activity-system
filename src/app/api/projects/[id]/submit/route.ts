@@ -45,8 +45,22 @@ export async function POST(
       ];
 
       await tx.workflowStep.deleteMany({ where: { projectId: id, docType: "025" } });
+      
+      const stepsData = steps.map(s => ({ ...s, projectId: id, docType: "025" }));
       await tx.workflowStep.createMany({
-        data: steps.map(s => ({ ...s, projectId: id, docType: "025" }))
+        data: stepsData
+      });
+
+      // 3. Create Audit Log
+      await tx.auditLog.create({
+        data: {
+          projectId: id,
+          userId: (session.user as any).id,
+          action: project.status === "revision_required" ? "resubmit" : "submit",
+          fromStatus: project.status,
+          toStatus: "submitted",
+          stepName: "นักศึกษา",
+        }
       });
 
       // 3. Create Notification for First Step

@@ -70,6 +70,18 @@ export async function POST(
         data: steps.map(s => ({ ...s, projectId: id, docType: "027" }))
       });
 
+      // 4. Create Audit Log
+      await tx.auditLog.create({
+        data: {
+          projectId: id,
+          userId: (session.user as any).id,
+          action: project.status === "summary_revision_required" ? "summary_resubmit" : "summary_submit",
+          fromStatus: project.status,
+          toStatus: "summary_submitted",
+          stepName: "นักศึกษา (สรุปผล)",
+        }
+      });
+
       // 4. Create Documents for 027
       const userId = (session.user as any).id;
       if (body.attachments?.length > 0) {
