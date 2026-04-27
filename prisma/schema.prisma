@@ -52,6 +52,7 @@ model Project {
   impactLevel          String?         @map("impact_level")
   organizationType     String?         @map("organization_type")
   status               String          @default("draft")
+  certificateStatus    String          @default("none") @map("certificate_status")
   currentStep          String?         @map("current_step")
   createdAt            DateTime        @default(now()) @map("created_at")
   updatedAt            DateTime        @updatedAt @map("updated_at")

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { StatusBadge } from "@/components/projects/StatusBadge";
 import { WorkflowTimeline } from "@/components/projects/WorkflowTimeline";
 import { AuditTimeline } from "@/components/projects/AuditTimeline";
+import CertificateManager from "./CertificateManager";
 import { 
   Calendar, 
   MapPin, 
@@ -15,8 +16,11 @@ import {
   ExternalLink, 
   FileText,
   History,
-  Clock
+  Clock,
+  Award,
+  Info
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import SubmitButton from "./SubmitButton";
 import ReviewForm from "@/components/approvals/ReviewForm";
@@ -31,7 +35,8 @@ export default async function ProjectDetailPage(props: {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const session = await getServerSession(authOptions);
-  const userRole = (session?.user as any)?.role;
+  const user = session?.user as any;
+  const userRole = user?.role;
 
   const project = await prisma.project.findUnique({
     where: { id: params.id },
@@ -61,6 +66,17 @@ export default async function ProjectDetailPage(props: {
   const activeReviewStep = project.workflowSteps.find(
     (s) => s.status === "in_review" && s.assigneeRole === userRole
   );
+
+  const getCertificateStatusInfo = (status: string) => {
+    switch (status) {
+      case "processing": return { label: "กำลังจัดทำ", color: "bg-amber-100 text-amber-700 border-amber-200" };
+      case "ready": return { label: "พร้อมรับ", color: "bg-emerald-100 text-emerald-700 border-emerald-200 animate-bounce-slow" };
+      case "collected": return { label: "รับแล้ว", color: "bg-blue-100 text-blue-700 border-blue-200" };
+      default: return { label: "ยังไม่เริ่ม", color: "bg-slate-100 text-slate-500 border-slate-200" };
+    }
+  };
+
+  const certInfo = getCertificateStatusInfo(project.certificateStatus);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -124,6 +140,25 @@ export default async function ProjectDetailPage(props: {
           stepId={activeReviewStep.id} 
           stepName={activeReviewStep.stepName} 
         />
+      )}
+
+      {/* Certificate Ready Alert for Student */}
+      {project.certificateStatus === "ready" && project.ownerId === user?.id && (
+        <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-6 flex items-start space-x-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-1000">
+          <div className="rounded-full bg-emerald-500 p-2 text-white shadow-lg shadow-emerald-200">
+            <Award className="h-6 w-6" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-black text-emerald-900 tracking-tight">ยินดีด้วย! เกียรติบัตรของคุณพร้อมรับแล้ว</h3>
+            <p className="text-sm text-emerald-700 font-medium mt-1">
+              โครงการ "{project.projectName}" ได้รับการออกเกียรติบัตรตัวจริงเรียบร้อยแล้ว 
+              กรุณาติดต่อรับได้ที่ **กองพัฒนานักศึกษา อาคาร 1 ชั้น 2** ในวันและเวลาราชการ
+            </p>
+          </div>
+          <button className="px-4 py-2 bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-lg shadow-sm hover:bg-emerald-700 transition-colors">
+            ดูแผนที่
+          </button>
+        </div>
       )}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -252,6 +287,34 @@ export default async function ProjectDetailPage(props: {
 
         {/* Sidebar: Workflow & Info */}
         <div className="space-y-6">
+          {/* Certificate Status Section for Students */}
+          {project.status === "completed" && (
+            <section className="rounded-xl border bg-white p-6 shadow-sm overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                <Award className="h-20 w-20" />
+              </div>
+              <h3 className="mb-4 text-sm font-bold text-slate-800 uppercase tracking-widest">สถานะเกียรติบัตร</h3>
+              <div className={cn(
+                "inline-flex items-center px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border",
+                certInfo.color
+              )}>
+                <Award className="mr-2 h-4 w-4" />
+                {certInfo.label}
+              </div>
+              
+              {project.certificateStatus === "none" && (
+                <p className="mt-4 text-[10px] text-slate-400 leading-relaxed italic">
+                  * มหาวิทยาลัยจะเริ่มดำเนินการจัดทำหลังจากโครงการสำเร็จเรียบร้อยแล้ว
+                </p>
+              )}
+            </section>
+          )}
+
+          {/* Certificate Manager for Staff */}
+          {project.status === "completed" && (userRole === "university" || userRole === "admin") && (
+            <CertificateManager projectId={project.id} currentStatus={project.certificateStatus} />
+          )}
+
           <section className="rounded-xl border bg-white p-6 shadow-sm">
             <h3 className="mb-6 text-lg font-bold text-slate-800 border-b pb-2">ขั้นตอนการอนุมัติปัจจุบัน</h3>
             {project.workflowSteps.length > 0 ? (
