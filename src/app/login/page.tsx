@@ -47,9 +47,30 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 relative overflow-hidden">
-      {/* Background Orbs */}
-      <div className="absolute top-0 -left-20 h-[500px] w-[500px] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse" />
-      <div className="absolute bottom-0 -right-20 h-[500px] w-[500px] rounded-full bg-purple-600/20 blur-[120px] animate-pulse" />
+      {/* Dynamic Animated Mesh Gradient */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] h-[700px] w-[700px] rounded-full bg-indigo-600/10 blur-[120px] animate-[float_20s_infinite_ease-in-out]" />
+        <div className="absolute bottom-[-10%] right-[-10%] h-[700px] w-[700px] rounded-full bg-purple-600/10 blur-[120px] animate-[float_25s_infinite_ease-in-out_reverse]" />
+        <div className="absolute top-[20%] right-[10%] h-[500px] w-[500px] rounded-full bg-blue-600/5 blur-[100px] animate-[float_30s_infinite_linear]" />
+        <div className="absolute bottom-[20%] left-[10%] h-[600px] w-[600px] rounded-full bg-fuchsia-600/5 blur-[110px] animate-[float_22s_infinite_ease-in-out_alternate]" />
+      </div>
+
+      {/* Grid Overlay for texture */}
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] brightness-100 contrast-150 pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+
+      <style jsx global>{`
+        @keyframes float {
+          0% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(10vw, 15vh) scale(1.1); }
+          66% { transform: translate(-15vw, 10vh) scale(0.9); }
+          100% { transform: translate(0, 0) scale(1); }
+        }
+        @keyframes pulse-subtle {
+          0%, 100% { opacity: 0.1; }
+          50% { opacity: 0.15; }
+        }
+      `}</style>
       
       <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
         

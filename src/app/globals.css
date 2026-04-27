@@ -9,22 +9,33 @@
   --color-indigo-500: #6366f1;
 }
 
-:root {
-  --foreground-rgb: 15, 23, 42;
-  --background-start-rgb: 248, 250, 252;
-  --background-end-rgb: 241, 245, 249;
+::selection {
+  background-color: rgba(79, 70, 229, 0.2);
+  color: #4f46e5;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: rgb(var(--background-start-rgb));
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+}
+
+/* Page Transitions */
+.page-transition {
+  animation: fade-in-up 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Glassmorphism Utilities (v4 Style) */
@@ -37,20 +48,21 @@ body {
 
 @utility glass-card {
   background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.5);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.1);
-    border-color: rgba(79, 70, 229, 0.2);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+    border-color: rgba(79, 70, 229, 0.3);
   }
 }
 
-/* Modern Scrollbar */
+/* Modern Scrollbar - Ultra Thin */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -58,12 +70,19 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+  background: #cbd5e1;
   border-radius: 10px;
+  transition: background 0.3s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
+  background: #94a3b8;
+}
+
+/* Top Progress Bar Simulation Style */
+#nprogress .bar {
+  background: linear-gradient(to right, #4f46e5, #9333ea) !important;
+  height: 3px !important;
 }
 
 @media print {
