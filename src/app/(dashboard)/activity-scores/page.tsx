@@ -116,45 +116,52 @@ export default async function ActivityScoresPage() {
                 <p className="text-slate-400 text-sm mt-2">เข้าร่วมและดำเนินโครงการให้เสร็จสิ้นเพื่อรับคะแนนกิจกรรม</p>
               </div>
             ) : (
-              scores.map((score, index) => (
-                <Link 
-                  key={score.id} 
-                  href={`/projects/${score.projectId}`}
-                  className="group relative flex items-center justify-between rounded-[32px] border border-slate-100 bg-white p-8 shadow-sm transition-all hover:shadow-2xl hover:border-indigo-200 hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4 duration-500"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="flex items-center space-x-6">
-                    <div className="h-16 w-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all duration-500">
-                      <FileText className="h-8 w-8" />
-                    </div>
-                    <div>
-                      <div className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center">
-                        {score.project?.projectName || score.activityType || "กิจกรรมสะสมคะแนน"}
-                        <ChevronRight className="h-4 w-4 ml-2 text-indigo-400 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
+              scores.map((score, index) => {
+                const isClickable = !!score.project;
+                const Container = isClickable ? Link : 'div';
+                
+                return (
+                  <Container 
+                    key={score.id} 
+                    href={isClickable ? `/projects/${score.projectId}` : undefined}
+                    className={`group relative flex items-center justify-between rounded-[32px] border border-slate-100 bg-white p-8 shadow-sm transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 ${isClickable ? 'hover:shadow-2xl hover:border-indigo-200 hover:-translate-y-1 cursor-pointer' : 'cursor-default'}`}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="flex items-center space-x-6">
+                      <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-slate-400 transition-all duration-500 ${isClickable ? 'bg-slate-50 group-hover:bg-indigo-50 group-hover:text-indigo-600' : 'bg-slate-50'}`}>
+                        <FileText className="h-8 w-8" />
                       </div>
-                      <div className="flex items-center mt-1 space-x-4">
-                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
-                            {score.activityType || "ทั่วไป"}
-                         </span>
-                         <div className="flex items-center text-xs font-bold text-slate-400">
-                            <Calendar className="mr-1.5 h-3.5 w-3.5" />
-                            {new Date(score.awardedAt).toLocaleDateString("th-TH")}
-                         </div>
+                      <div>
+                        <div className={`text-lg font-black text-slate-900 transition-colors flex items-center ${isClickable ? 'group-hover:text-indigo-600' : ''}`}>
+                          {score.project?.projectName || score.activityType || "กิจกรรมสะสมคะแนน"}
+                          {isClickable && (
+                            <ChevronRight className="h-4 w-4 ml-2 text-indigo-400 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
+                          )}
+                        </div>
+                        <div className="flex items-center mt-1 space-x-4">
+                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-100 transition-colors ${isClickable ? 'bg-slate-50 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600' : 'bg-slate-50 text-slate-500'}`}>
+                              {score.activityType || "ทั่วไป"}
+                           </span>
+                           <div className="flex items-center text-xs font-bold text-slate-400">
+                              <Calendar className="mr-1.5 h-3.5 w-3.5" />
+                              {new Date(score.awardedAt).toLocaleDateString("th-TH")}
+                           </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="flex items-baseline justify-end space-x-1">
-                      <span className="text-xs font-black text-emerald-500 uppercase">Points</span>
-                      <p className="text-4xl font-black text-emerald-500 tracking-tighter">
-                        +{Number(score.score)}
-                      </p>
+                    
+                    <div className="text-right">
+                      <div className="flex items-baseline justify-end space-x-1">
+                        <span className="text-xs font-black text-emerald-500 uppercase">Points</span>
+                        <p className="text-4xl font-black text-emerald-500 tracking-tighter">
+                          +{Number(score.score)}
+                        </p>
+                      </div>
+                      <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mt-1 transition-colors group-hover:text-emerald-400">Verified Activity</p>
                     </div>
-                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mt-1 group-hover:text-emerald-400 transition-colors">Verified Activity</p>
-                  </div>
-                </Link>
-              ))
+                  </Container>
+                );
+              })
             )}
           </div>
         </div>
