@@ -13,17 +13,29 @@ export async function GET() {
   }
 
   try {
-    // Find steps that are 'in_review' and assigned to the user's role
+    // FIXED: Replaced nested include with explicit select to prevent over-fetching
     const pendingSteps = await prisma.workflowStep.findMany({
       where: {
         status: "in_review",
         assigneeRole: role,
       },
-      include: {
+      select: {
+        id: true,
+        stepName: true,
+        stepOrder: true,
+        docType: true,
+        assigneeRole: true,
+        createdAt: true,
         project: {
-          include: {
+          select: {
+            id: true,
+            projectName: true,
+            status: true,
+            department: true,
+            academicYear: true,
+            semester: true,
             owner: {
-              select: { fullName: true, studentId: true }
+              select: { fullName: true, studentId: true, email: true }
             }
           }
         },
@@ -33,6 +45,8 @@ export async function GET() {
 
     return NextResponse.json(pendingSteps);
   } catch (error) {
+    console.error("[approvals/GET]", error);
     return NextResponse.json({ error: "Failed to fetch approvals" }, { status: 500 });
   }
 }
+

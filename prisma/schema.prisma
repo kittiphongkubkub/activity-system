@@ -68,8 +68,8 @@ model Project {
   members              ProjectMember[]
 
   @@map("projects")
-  @@index([ownerId])
-  @@index([status])
+  @@index([ownerId, updatedAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
   @@index([advisorId])
 }
 
@@ -126,7 +126,7 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 
   @@map("notifications")
-  @@index([userId])
+  @@index([userId, isRead, createdAt(sort: Desc)])
 }
 
 model AuditLog {
@@ -144,7 +144,7 @@ model AuditLog {
   user        User?    @relation(fields: [userId], references: [id])
 
   @@map("audit_logs")
-  @@index([projectId])
+  @@index([projectId, createdAt(sort: Desc)])
   @@index([userId])
 }
 
@@ -161,7 +161,7 @@ model ProjectMember {
 
   @@unique([projectId, userId])
   @@map("project_members")
-  @@index([userId])
+  @@index([userId, status])
   @@index([projectId])
 }
 
@@ -178,7 +178,7 @@ model ActivityScore {
   student      User     @relation(fields: [studentId], references: [id])
 
   @@map("activity_scores")
-  @@index([studentId])
+  @@index([studentId, awardedAt(sort: Desc)])
   @@index([projectId])
 }
 
@@ -199,7 +199,7 @@ model WorkflowStep {
   project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("workflow_steps")
-  @@index([projectId])
-  @@index([assigneeId])
-  @@index([status])
+  @@index([projectId, stepOrder])
+  @@index([assigneeId, status])
+  @@index([assigneeRole, status])
 }

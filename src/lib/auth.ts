@@ -55,7 +55,19 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).role = token.role;
+        // Always re-validate role and active status from DB on session access
+        // This prevents stale roles after admin promotes/demotes a user
+        const freshUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, isActive: true },
+        });
+
+        // Deactivated users are immediately denied — their token becomes invalid
+        if (!freshUser || !freshUser.isActive) {
+          return null as any;
+        }
+
+        (session.user as any).role = freshUser.role; // Always use DB role, not token role
         (session.user as any).id = token.id;
       }
       return session;

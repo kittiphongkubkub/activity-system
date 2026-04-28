@@ -98,19 +98,23 @@ export async function notifyNextReviewer(projectId: string, nextStepName: string
     where: { 
       role: assigneeRole, 
       isActive: true,
-      // Only filter by department if the project has one specified
       ...(project.department ? { department: project.department } : {})
     },
     select: { id: true },
   });
 
-  for (const user of usersWithRole) {
-    await createNotification({
-      userId: user.id,
-      projectId,
-      type: "approval_request",
-      title: "โครงการใหม่รอการอนุมัติ (ตามบทบาทของคุณ)",
-      message: `โครงการ "${project.projectName}" รอการพิจารณาในขั้นตอน: ${nextStepName}`,
+  // FIXED: Use createMany for a single batch INSERT instead of N sequential INSERTs
+  if (usersWithRole.length > 0) {
+    await prisma.notification.createMany({
+      data: usersWithRole.map(user => ({
+        userId: user.id,
+        projectId,
+        type: "approval_request",
+        title: "โครงการใหม่รอการอนุมัติ (ตามบทบาทของคุณ)",
+        message: `โครงการ "${project.projectName}" รอการพิจารณาในขั้นตอน: ${nextStepName}`,
+        isRead: false,
+      })),
+      skipDuplicates: true,
     });
   }
 }

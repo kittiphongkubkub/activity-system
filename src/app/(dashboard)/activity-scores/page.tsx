@@ -12,7 +12,19 @@ export default async function ActivityScoresPage() {
 
   const scores = await prisma.activityScore.findMany({
     where: { studentId: (session.user as any).id },
-    include: { project: { select: { projectName: true, id: true } } },
+    select: {
+      id: true,
+      score: true,
+      activityType: true,
+      awardedAt: true,
+      projectId: true,
+      project: {
+        select: {
+          projectName: true,
+          id: true
+        }
+      }
+    },
     orderBy: { awardedAt: "desc" },
   });
 
@@ -125,14 +137,14 @@ export default async function ActivityScoresPage() {
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="flex items-center space-x-6">
-                      <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-slate-400 transition-all duration-500 ${isClickable ? 'bg-slate-50 group-hover:bg-indigo-50 group-hover:text-indigo-600' : 'bg-slate-50'}`}>
+                      <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-slate-400 transition-all duration-500 ${isClickable ? 'bg-slate-50 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:scale-110' : 'bg-slate-50'}`}>
                         <FileText className="h-8 w-8" />
                       </div>
                       <div>
                         <div className={`text-lg font-black text-slate-900 transition-colors flex items-center ${isClickable ? 'group-hover:text-indigo-600' : ''}`}>
                           {score.project?.projectName || score.activityType || "กิจกรรมสะสมคะแนน"}
                           {isClickable && (
-                            <ChevronRight className="h-4 w-4 ml-2 text-indigo-400 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
+                            <ChevronRight className="h-4 w-4 ml-2 text-indigo-300 group-hover:text-indigo-600 transition-all group-hover:translate-x-1" />
                           )}
                         </div>
                         <div className="flex items-center mt-1 space-x-4">
@@ -143,6 +155,12 @@ export default async function ActivityScoresPage() {
                               <Calendar className="mr-1.5 h-3.5 w-3.5" />
                               {new Date(score.awardedAt).toLocaleDateString("th-TH")}
                            </div>
+                           {isClickable && (
+                             <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+                               <ChevronRight className="h-3 w-3 mr-1" />
+                               คลิกเพื่อดูรายละเอียด
+                             </span>
+                           )}
                         </div>
                       </div>
                     </div>
@@ -161,7 +179,7 @@ export default async function ActivityScoresPage() {
 
                 if (isClickable) {
                   return (
-                    <Link key={score.id} href={`/projects/${score.projectId}`} className="block">
+                    <Link key={score.id} href={`/projects/${score.project?.id || score.projectId}`} className="block">
                       {CardContent}
                     </Link>
                   );

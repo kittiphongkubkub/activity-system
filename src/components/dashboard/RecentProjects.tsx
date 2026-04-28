@@ -13,7 +13,17 @@ export async function RecentProjects({ userId, role }: RecentProjectsProps) {
     where: role === "student" ? { ownerId: userId } : {},
     orderBy: { updatedAt: "desc" },
     take: 5,
-    include: { owner: true }
+    select: {
+      id: true,
+      projectName: true,
+      status: true,
+      updatedAt: true,
+      owner: {
+        select: {
+          fullName: true,
+        }
+      }
+    }
   });
 
   if (recentProjects.length === 0) {

@@ -42,7 +42,7 @@ export const NotificationList = ({ initialNotifications }: { initialNotification
         } else {
           setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
         }
-        router.refresh();
+        // router.refresh(); // Removed to prevent unnecessary full-page re-renders
       }
     } catch (err) {
       console.error(err);

@@ -4,29 +4,48 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { StatusBadge } from "@/components/projects/StatusBadge";
 import { ProjectSearch } from "@/components/projects/ProjectSearch";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { redirect } from "next/navigation";
+
+const PAGE_SIZE = 20;
 
 export default async function ProjectsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; status?: string }>;
+  searchParams: Promise<{ search?: string; status?: string; cursor?: string }>;
 }) {
-  const { search, status } = await searchParams;
+  const { search, status, cursor } = await searchParams;
   const session = await getServerSession(authOptions);
+  if (!session) redirect("/login");
+  const userId = (session.user as any).id;
   
+  // FIXED: Added cursor-based pagination (no unbounded findMany)
   const projects = await prisma.project.findMany({
+    take: PAGE_SIZE + 1, // Fetch one extra to detect if there's a next page
+    skip: cursor ? 1 : 0,
+    cursor: cursor ? { id: cursor } : undefined,
     where: {
-      ownerId: (session?.user as any)?.id,
-      ...(search ? {
-        projectName: {
-          contains: search,
-          mode: 'insensitive'
-        }
-      } : {}),
+      ownerId: userId,
+      ...(search ? { projectName: { contains: search, mode: 'insensitive' } } : {}),
       ...(status ? { status } : {}),
+    },
+    // FIXED: Explicit select — prevents loading description/objectives/other large fields
+    select: {
+      id: true,
+      projectName: true,
+      projectType: true,
+      status: true,
+      academicYear: true,
+      semester: true,
+      plannedStartDate: true,
+      plannedEndDate: true,
     },
     orderBy: { createdAt: "desc" },
   });
+
+  const hasNextPage = projects.length > PAGE_SIZE;
+  const displayProjects = hasNextPage ? projects.slice(0, PAGE_SIZE) : projects;
+  const nextCursor = hasNextPage ? displayProjects[displayProjects.length - 1].id : null;
 
   return (
     <div className="space-y-8">
@@ -62,7 +81,7 @@ export default async function ProjectsPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 bg-white">
-            {projects.length === 0 ? (
+            {displayProjects.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
                   <FileText className="mx-auto h-12 w-12 text-slate-300 mb-4" />
@@ -70,7 +89,7 @@ export default async function ProjectsPage({
                 </td>
               </tr>
             ) : (
-              projects.map((project) => (
+              displayProjects.map((project) => (
                 <tr key={project.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
@@ -105,6 +124,31 @@ export default async function ProjectsPage({
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Cursor Pagination Controls */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-slate-500">
+          แสดง {displayProjects.length} รายการ {cursor ? "(หน้าถัดไป)" : ""}
+        </p>
+        <div className="flex space-x-3">
+          {cursor && (
+            <Link
+              href={`/projects?${new URLSearchParams({ ...(search ? { search } : {}), ...(status ? { status } : {}) }).toString()}`}
+              className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" /> กลับต้น
+            </Link>
+          )}
+          {nextCursor && (
+            <Link
+              href={`/projects?${new URLSearchParams({ ...(search ? { search } : {}), ...(status ? { status } : {}), cursor: nextCursor }).toString()}`}
+              className="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-500 transition-colors"
+            >
+              ดูเพิ่มเติม <ChevronRight className="ml-1 h-4 w-4" />
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import prisma from "@/lib/db";
 import { notifyStatusChange, createNotification } from "./notifications";
+import { assertValidTransition } from "./workflow-states";
 
 export const WORKFLOW_ROLES = [
   { step_order: 1, step_name: "อาจารย์ที่ปรึกษา", assignee_role: "advisor" },
@@ -130,138 +131,133 @@ export async function processStepReview({
   decision: "approve" | "reject" | "revision";
   comments?: string;
 }) {
-  const currentStep = await prisma.workflowStep.findUnique({
-    where: { id: stepId },
-    include: { project: true },
-  });
-
-  if (!currentStep) throw new Error("Step not found");
-
-  const { projectId, docType, stepOrder } = currentStep;
-
-  if (decision === "approve") {
-    await prisma.workflowStep.update({
+  return await prisma.$transaction(async (tx) => {
+    const currentStep = await tx.workflowStep.findUnique({
       where: { id: stepId },
-      data: {
-        status: "approved",
-        assigneeId: approverId,
-        comments,
-        reviewedAt: new Date(),
-      },
+      include: { project: true },
     });
 
-    let finalStatus = currentStep.project.status;
-    const nextStep = await prisma.workflowStep.findFirst({
-      where: {
-        projectId,
-        docType,
-        stepOrder: stepOrder + 1,
-      },
-    });
+    if (!currentStep) throw new Error("Step not found");
 
-    if (nextStep) {
-      await prisma.workflowStep.update({
-        where: { id: nextStep.id },
-        data: { status: "in_review" },
+    const { projectId, docType, stepOrder } = currentStep;
+    const currentProjectStatus = currentStep.project.status;
+
+    if (decision === "approve") {
+      await tx.workflowStep.update({
+        where: { id: stepId },
+        data: { status: "approved", assigneeId: approverId, comments, reviewedAt: new Date() },
       });
-      
-      finalStatus = docType === "027" ? "summary_under_review" : "under_review";
-      await prisma.project.update({
-        where: { id: projectId },
-        data: { 
-          currentStep: nextStep.stepName,
-          status: finalStatus
+
+      let finalStatus = currentProjectStatus;
+      const nextStep = await tx.workflowStep.findFirst({
+        where: { projectId, docType, stepOrder: stepOrder + 1 },
+      });
+
+      if (nextStep) {
+        finalStatus = docType === "027" ? "summary_under_review" : "under_review";
+        // VALIDATE: Ensure this transition is allowed by the state machine
+        assertValidTransition(currentProjectStatus, finalStatus);
+
+        await tx.workflowStep.update({
+          where: { id: nextStep.id },
+          data: { status: "in_review" },
+        });
+        await tx.project.update({
+          where: { id: projectId },
+          data: { currentStep: nextStep.stepName, status: finalStatus },
+        });
+
+        // Notify the next reviewer (Triggered outside the critical data transaction but still logically part of it)
+        const { notifyNextReviewer } = await import("./notifications");
+        await notifyNextReviewer(projectId, nextStep.stepName, nextStep.assigneeRole, nextStep.assigneeId);
+      } else {
+        finalStatus = docType === "025" ? "approved" : "completed";
+        
+        await tx.project.update({
+          where: { id: projectId },
+          data: { status: finalStatus, currentStep: null },
+        });
+
+        if (finalStatus === "completed") {
+          // Inner function needs to be aware of the transaction context if it does DB work
+          // But for now, we'll keep it as is or move it into the transaction
+          await rewardActivityScore(projectId); 
+        }
+        
+        await notifyStatusChange(projectId, finalStatus);
+      }
+
+      await tx.auditLog.create({
+        data: {
+          projectId,
+          userId: approverId,
+          action: "approve",
+          fromStatus: currentStep.project.status,
+          toStatus: finalStatus,
+          comments,
+          stepName: currentStep.stepName,
+        }
+      });
+    } else if (decision === "revision") {
+      await tx.workflowStep.update({
+        where: { id: stepId },
+        data: {
+          status: "revision_required",
+          assigneeId: approverId,
+          comments,
+          reviewedAt: new Date(),
         },
       });
 
-      // Notify the next reviewer
-      const { notifyNextReviewer } = await import("./notifications");
-      await notifyNextReviewer(projectId, nextStep.stepName, nextStep.assigneeRole, nextStep.assigneeId);
-    } else {
-      finalStatus = docType === "025" ? "approved" : "completed";
-      
-      await prisma.project.update({
+      const newStatus = docType === "027" ? "summary_revision_required" : "revision_required";
+
+      await tx.auditLog.create({
+        data: {
+          projectId,
+          userId: approverId,
+          action: "request_revision",
+          fromStatus: currentStep.project.status,
+          toStatus: newStatus,
+          comments,
+          stepName: currentStep.stepName,
+        }
+      });
+      await tx.project.update({
         where: { id: projectId },
-        data: { status: finalStatus, currentStep: null },
+        data: { status: newStatus },
       });
 
-      if (finalStatus === "completed") {
-        await rewardActivityScore(projectId);
-      }
-      
-      await notifyStatusChange(projectId, finalStatus);
+      await notifyStatusChange(projectId, newStatus);
+    } else if (decision === "reject") {
+      await tx.workflowStep.update({
+        where: { id: stepId },
+        data: {
+          status: "rejected",
+          assigneeId: approverId,
+          comments,
+          reviewedAt: new Date(),
+        },
+      });
+
+      const newStatus = docType === "027" ? "summary_rejected" : "rejected";
+
+      await tx.auditLog.create({
+        data: {
+          projectId,
+          userId: approverId,
+          action: "reject",
+          fromStatus: currentStep.project.status,
+          toStatus: newStatus,
+          comments,
+          stepName: currentStep.stepName,
+        }
+      });
+      await tx.project.update({
+        where: { id: projectId },
+        data: { status: newStatus },
+      });
+
+      await notifyStatusChange(projectId, newStatus);
     }
-
-    await prisma.auditLog.create({
-      data: {
-        projectId,
-        userId: approverId,
-        action: "approve",
-        fromStatus: currentStep.project.status,
-        toStatus: finalStatus,
-        comments,
-        stepName: currentStep.stepName,
-      }
-    });
-  } else if (decision === "revision") {
-    await prisma.workflowStep.update({
-      where: { id: stepId },
-      data: {
-        status: "revision_required",
-        assigneeId: approverId,
-        comments,
-        reviewedAt: new Date(),
-      },
-    });
-
-    const newStatus = docType === "027" ? "summary_revision_required" : "revision_required";
-
-    await prisma.auditLog.create({
-      data: {
-        projectId,
-        userId: approverId,
-        action: "request_revision",
-        fromStatus: currentStep.project.status,
-        toStatus: newStatus,
-        comments,
-        stepName: currentStep.stepName,
-      }
-    });
-    await prisma.project.update({
-      where: { id: projectId },
-      data: { status: newStatus },
-    });
-
-    await notifyStatusChange(projectId, newStatus);
-  } else if (decision === "reject") {
-    await prisma.workflowStep.update({
-      where: { id: stepId },
-      data: {
-        status: "rejected",
-        assigneeId: approverId,
-        comments,
-        reviewedAt: new Date(),
-      },
-    });
-
-    const newStatus = docType === "027" ? "summary_rejected" : "rejected";
-
-    await prisma.auditLog.create({
-      data: {
-        projectId,
-        userId: approverId,
-        action: "reject",
-        fromStatus: currentStep.project.status,
-        toStatus: newStatus,
-        comments,
-        stepName: currentStep.stepName,
-      }
-    });
-    await prisma.project.update({
-      where: { id: projectId },
-      data: { status: newStatus },
-    });
-
-    await notifyStatusChange(projectId, newStatus);
-  }
+  });
 }

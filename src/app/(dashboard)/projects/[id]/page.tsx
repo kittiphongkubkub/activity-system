@@ -149,15 +149,15 @@ export default async function ProjectDetailPage(props: {
             <div className="space-y-4">
               <div>
                 <h4 className="text-sm font-medium text-slate-500 uppercase tracking-wider">หลักการและเหตุผล</h4>
-                <p className="mt-1 text-slate-700 whitespace-pre-wrap break-words">{project.description}</p>
+                <p className="mt-1 text-slate-700 whitespace-pre-wrap break-words">{project.description || "ไม่ระบุข้อมูล"}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-slate-500 uppercase tracking-wider">วัตถุประสงค์</h4>
-                <p className="mt-1 text-slate-700 whitespace-pre-wrap break-words">{project.objectives}</p>
+                <p className="mt-1 text-slate-700 whitespace-pre-wrap break-words">{project.objectives || "ไม่ระบุข้อมูล"}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-slate-500 uppercase tracking-wider">ผลที่คาดว่าจะได้รับ</h4>
-                <p className="mt-1 text-slate-700 whitespace-pre-wrap break-words">{project.expectedOutcome}</p>
+                <p className="mt-1 text-slate-700 whitespace-pre-wrap break-words">{project.expectedOutcome || "ไม่ระบุข้อมูล"}</p>
               </div>
             </div>
           </section>
@@ -211,7 +211,7 @@ export default async function ProjectDetailPage(props: {
               </div>
               <div>
                 <p className="text-xs text-slate-500 uppercase">สถานที่</p>
-                <p className="text-sm font-bold text-slate-800">{project.location}</p>
+                <p className="text-sm font-bold text-slate-800">{project.location || "ไม่ได้ระบุ"}</p>
               </div>
             </div>
             <div className="rounded-xl border bg-white p-4 shadow-sm flex items-center">

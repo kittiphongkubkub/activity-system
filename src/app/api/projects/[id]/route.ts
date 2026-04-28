@@ -13,15 +13,34 @@ export async function GET(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const project = await prisma.project.findUnique({
-      where: { id, ownerId: (session.user as any).id },
-      include: { documents: true }
+    const userId = (session.user as any).id;
+    const userRole = (session.user as any).role;
+
+    // Robust authorization logic (similar to getAuthorizedProject)
+    const project = await prisma.project.findFirst({
+      where: {
+        id,
+        OR: [
+          { ownerId: userId },
+          { advisorId: userId },
+          { members: { some: { userId, status: "accepted" } } },
+          // Admins can see all
+          ...(userRole === "admin" || userRole === "university" ? [{ id }] : [])
+        ]
+      },
+      include: { 
+        documents: true,
+        members: { include: { user: { select: { fullName: true, email: true } } } },
+        owner: { select: { fullName: true, email: true } },
+        advisor: { select: { fullName: true, email: true } }
+      }
     });
 
-    if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    if (!project) return NextResponse.json({ error: "Project not found or Access denied" }, { status: 404 });
 
     return NextResponse.json(project);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
