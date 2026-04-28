@@ -25,12 +25,21 @@ export const project025Schema = z.object({
   organizationType: z.enum(["union", "club", "working_group"]),
   studentRole: z.enum(["president", "vp", "committee", "operator", "participant"]),
   impactLevel: z.enum(["national", "community", "university", "faculty", "personal"]),
+  presidentEmail: z.string().email("กรุณาระบุอีเมลที่ถูกต้อง").optional().or(z.literal("")),
 }).refine((data) => {
   if (!data.plannedStartDate || !data.plannedEndDate) return true;
   return new Date(data.plannedEndDate) >= new Date(data.plannedStartDate);
 }, {
   message: "วันสิ้นสุดโครงการต้องไม่ก่อนวันเริ่มโครงการ",
   path: ["plannedEndDate"],
+}).refine((data) => {
+  if (data.studentRole !== "president" && !data.presidentEmail) {
+    return false;
+  }
+  return true;
+}, {
+  message: "เนื่องจากคุณไม่ใช่ประธานโครงการ กรุณาระบุอีเมลของประธานโครงการเพื่อดำเนินการต่อ",
+  path: ["presidentEmail"],
 });
 
 export type Project025Input = z.infer<typeof project025Schema>;

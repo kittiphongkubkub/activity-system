@@ -235,6 +235,21 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
               {errors.studentRole && <p className="mt-1 text-xs text-red-500">{errors.studentRole.message}</p>}
             </div>
 
+            {(require("react-hook-form").useWatch)({ name: "studentRole" }) && (require("react-hook-form").useWatch)({ name: "studentRole" }) !== "president" && (
+              <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                <label className="block text-sm font-medium text-indigo-700 flex items-center">
+                  อีเมลของประธานโครงการ <span className="text-rose-500 ml-1">*</span>
+                </label>
+                <input
+                  {...register("presidentEmail")}
+                  className="mt-1 block w-full rounded-lg border border-indigo-200 bg-indigo-50/30 px-4 py-2 outline-none focus:border-indigo-500 focus:bg-white"
+                  placeholder="เช่น president@student.university.ac.th"
+                />
+                <p className="mt-1 text-[10px] text-indigo-500 font-medium italic">* เนื่องจากคุณไม่ใช่ประธาน ระบบจะเชิญประธานตามอีเมลนี้อัตโนมัติ</p>
+                {errors.presidentEmail && <p className="mt-1 text-xs text-red-500 font-bold">{errors.presidentEmail.message}</p>}
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-slate-700">ระดับผลกระทบ</label>
               <select

@@ -36,10 +36,11 @@ export async function POST(req: Request) {
     
     // Validate the data
     const validatedData = project025Schema.parse(body);
+    const { presidentEmail, ...projectData } = validatedData;
 
     const project = await prisma.project.create({
       data: {
-        ...validatedData,
+        ...projectData,
         ownerId: userId,
         status: "draft",
         plannedStartDate: new Date(validatedData.plannedStartDate),
@@ -56,6 +57,34 @@ export async function POST(req: Request) {
         },
       },
     });
+
+    // If there's a president email provided (and user is not the president)
+    if (presidentEmail && validatedData.studentRole !== "president") {
+      const presidentUser = await prisma.user.findUnique({
+        where: { email: presidentEmail }
+      });
+
+      if (presidentUser) {
+        await prisma.projectMember.create({
+          data: {
+            projectId: project.id,
+            userId: presidentUser.id,
+            role: "president",
+            status: "accepted"
+          }
+        });
+        
+        // Notify the president
+        const { createNotification } = require("@/lib/notifications");
+        await createNotification({
+          userId: presidentUser.id,
+          projectId: project.id,
+          type: "invitation",
+          title: "คุณถูกระบุเป็นประธานโครงการใหม่",
+          message: `คุณถูกระบุเป็นประธานโครงการ "${project.projectName}" โดย ${(session.user as any).fullName}`,
+        });
+      }
+    }
 
     return NextResponse.json(project);
   } catch (error: any) {
