@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ExploreSearch } from "@/components/projects/ExploreSearch";
+import { StatusBadge } from "@/components/projects/StatusBadge";
 
 export default async function ExploreProjectsPage({
   searchParams,
