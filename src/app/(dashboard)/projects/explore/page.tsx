@@ -20,17 +20,18 @@ import { StatusBadge } from "@/components/projects/StatusBadge";
 export default async function ExploreProjectsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string }>;
+  searchParams: Promise<{ search?: string; type?: string; status?: string }>;
 }) {
-  const { search } = await searchParams;
+  const { search, type, status } = await searchParams;
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
-  // Fetch all projects that are NOT drafts and are approved or completed
-  // For "Exploring", we mainly want to see projects that are approved/ongoing
+  // Fetch all projects based on filters
   const projects = await prisma.project.findMany({
     where: {
-      status: { in: ["approved", "summary_submitted", "summary_under_review", "completed"] },
+      // Default to approved/completed statuses if no specific status filter
+      status: status ? status : { in: ["approved", "summary_submitted", "summary_under_review", "completed"] },
+      ...(type ? { projectType: type } : {}),
       ...(search ? {
         OR: [
           { projectName: { contains: search, mode: 'insensitive' } },
