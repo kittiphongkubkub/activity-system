@@ -80,7 +80,7 @@ export default async function ProjectDetailPage(props: {
         <div className="flex items-center space-x-3">
           <PrintButton />
           
-        {(project.status === "draft" || project.status === "revision_required") && (session?.user as any)?.id === project.ownerId && (
+        {(project.status === "draft" || project.status === "revision_required") && user?.id === project.ownerId && (
           <>
             <Link
               href={`/projects/${project.id}/edit`}
