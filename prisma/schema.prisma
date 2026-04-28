@@ -73,25 +73,6 @@ model Project {
   @@index([advisorId])
 }
 
-model WorkflowStep {
-  id           String    @id @default(uuid())
-  projectId    String    @map("project_id")
-  docType      String    @map("doc_type")
-  stepOrder    Int       @map("step_order")
-  stepName     String    @map("step_name")
-  assigneeRole String    @map("assignee_role")
-  assigneeId   String?   @map("assignee_id")
-  status       String    @default("pending")
-  comments     String?
-  reviewedAt   DateTime? @map("reviewed_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  assignee     User?     @relation(fields: [assigneeId], references: [id])
-  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@map("workflow_steps")
-}
-
 model Document {
   id         String   @id @default(uuid())
   projectId  String   @map("project_id")
@@ -132,21 +113,6 @@ model ProjectSummary {
   @@map("project_summaries")
 }
 
-model ActivityScore {
-  id           String   @id @default(uuid())
-  studentId    String   @map("student_id")
-  projectId    String   @map("project_id")
-  activityType String?  @map("activity_type")
-  score        Float
-  notes        String?
-  awardedAt    DateTime @default(now()) @map("awarded_at")
-  awardedBy    String?  @map("awarded_by")
-  project      Project  @relation(fields: [projectId], references: [id])
-  student      User     @relation(fields: [studentId], references: [id])
-
-  @@map("activity_scores")
-}
-
 model Notification {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
@@ -178,6 +144,8 @@ model AuditLog {
   user        User?    @relation(fields: [userId], references: [id])
 
   @@map("audit_logs")
+  @@index([projectId])
+  @@index([userId])
 }
 
 model ProjectMember {
@@ -193,5 +161,45 @@ model ProjectMember {
 
   @@unique([projectId, userId])
   @@map("project_members")
+  @@index([userId])
+  @@index([projectId])
 }
 
+model ActivityScore {
+  id           String   @id @default(uuid())
+  studentId    String   @map("student_id")
+  projectId    String   @map("project_id")
+  activityType String?  @map("activity_type")
+  score        Float
+  notes        String?
+  awardedAt    DateTime @default(now()) @map("awarded_at")
+  awardedBy    String?  @map("awarded_by")
+  project      Project  @relation(fields: [projectId], references: [id])
+  student      User     @relation(fields: [studentId], references: [id])
+
+  @@map("activity_scores")
+  @@index([studentId])
+  @@index([projectId])
+}
+
+model WorkflowStep {
+  id           String    @id @default(uuid())
+  projectId    String    @map("project_id")
+  docType      String    @map("doc_type")
+  stepOrder    Int       @map("step_order")
+  stepName     String    @map("step_name")
+  assigneeRole String    @map("assignee_role")
+  assigneeId   String?   @map("assignee_id")
+  status       String    @default("pending")
+  comments     String?
+  reviewedAt   DateTime? @map("reviewed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  assignee     User?     @relation(fields: [assigneeId], references: [id])
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_steps")
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([status])
+}
