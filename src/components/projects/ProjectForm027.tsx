@@ -225,34 +225,41 @@ export default function ProjectForm027({ projectId, initialData }: { projectId: 
             ))}
           </div>
 
-          <div className="relative">
-            <input
-              type="file"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="summary-file-upload"
-              disabled={isUploading}
-            />
-            <label
-              htmlFor="summary-file-upload"
-              className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
-                isUploading ? 'bg-slate-50 border-slate-300' : 'hover:bg-slate-50 border-slate-300 hover:border-indigo-400'
-              }`}
-            >
-              {isUploading ? (
-                <div className="flex flex-col items-center">
-                  <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
-                  <p className="mt-2 text-sm font-medium text-slate-500">กำลังอัพโหลด...</p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <Upload className="h-8 w-8 text-slate-400" />
-                  <p className="mt-2 text-sm font-medium text-slate-600">คลิกเพื่ออัพโหลดรูปภาพหรือเอกสารสรุปโครงการ</p>
-                  <p className="text-xs text-slate-400 mt-1">PDF, Word, Image (สูงสุด 10MB)</p>
-                </div>
-              )}
-            </label>
-          </div>
+          {attachments.length === 0 && (
+            <div className="relative">
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="summary-file-upload"
+                disabled={isUploading}
+              />
+              <label
+                htmlFor="summary-file-upload"
+                className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                  isUploading ? 'bg-slate-50 border-slate-300' : 'hover:bg-slate-50 border-slate-300 hover:border-indigo-400'
+                }`}
+              >
+                {isUploading ? (
+                  <div className="flex flex-col items-center">
+                    <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+                    <p className="mt-2 text-sm font-medium text-slate-500">กำลังอัพโหลด...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <Upload className="h-8 w-8 text-slate-400" />
+                    <p className="mt-2 text-sm font-medium text-slate-600">คลิกเพื่ออัพโหลดรูปภาพหรือเอกสารสรุปโครงการ</p>
+                    <p className="text-xs text-slate-400 mt-1">PDF, Word, Image (สูงสุด 10MB)</p>
+                  </div>
+                )}
+              </label>
+            </div>
+          )}
+          {attachments.length > 0 && (
+            <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 py-3 rounded-xl border border-dashed border-slate-200">
+              จำกัดการแนบเอกสารเพียง 1 ไฟล์เท่านั้น
+            </p>
+          )}
         </div>
       </section>
 
