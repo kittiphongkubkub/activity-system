@@ -198,7 +198,7 @@ export async function processStepReview({
         });
 
         // Notify the next reviewer
-        await notifyNextReviewer(projectId, nextStep.stepName, nextStep.assigneeRole, nextStep.assigneeId);
+        await notifyNextReviewer(projectId, nextStep.stepName, nextStep.assigneeRole, nextStep.assigneeId, tx);
       } else {
         finalStatus = docType === "025" ? "approved" : "completed";
         
