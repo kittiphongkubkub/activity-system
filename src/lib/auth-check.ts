@@ -41,6 +41,12 @@ export async function getAuthorizedProject(projectId: string) {
             }
           }
         },
+        // Allow users who have earned an activity score from this project
+        {
+          activityScores: {
+            some: { studentId: user.id }
+          }
+        },
         // Check if user is admin/university staff (assuming role field in session)
         ...(userRole === "admin" || userRole === "university" ? [{ id: projectId }] : [])
       ]
