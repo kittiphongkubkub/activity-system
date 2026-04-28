@@ -62,7 +62,7 @@ export function apiHandler(handler: HandlerFn, options: HandlerOptions = {}) {
       // Zod validation error
       if (err instanceof ZodError) {
         return NextResponse.json(
-          { error: "Validation failed", details: err.errors },
+          { error: "Validation failed", details: err.issues },
           { status: 400 }
         );
       }
