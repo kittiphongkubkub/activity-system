@@ -19,6 +19,7 @@ interface Member {
   userId: string;
   role: string;
   status: string;
+  joinedAt: string;
   user: {
     fullName: string;
     email: string;
