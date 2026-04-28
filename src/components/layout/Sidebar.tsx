@@ -43,6 +43,9 @@ const Sidebar = () => {
     }
   }, [session]);
 
+  const searchParams = (require("next/navigation")).useSearchParams();
+  const currentDocType = searchParams.get("docType");
+
   const routes = [
     {
       label: "แผงควบคุม",
@@ -64,15 +67,22 @@ const Sidebar = () => {
       show: role === "admin",
     },
     {
-      label: "โครงการของฉัน",
+      label: "เสนอโครงการ (025)",
       icon: FileText,
-      href: "/projects",
-      active: pathname.startsWith("/projects"),
+      href: "/projects?docType=025",
+      active: pathname === "/projects" && (currentDocType === "025" || !currentDocType),
+      show: role === "student" || role === "admin",
+    },
+    {
+      label: "สรุปผลโครงการ (027)",
+      icon: CheckSquare,
+      href: "/projects?docType=027",
+      active: pathname === "/projects" && currentDocType === "027",
       show: role === "student" || role === "admin",
     },
     {
       label: "การอนุมัติ",
-      icon: CheckSquare,
+      icon: ShieldCheck,
       href: "/approvals",
       active: pathname.startsWith("/approvals"),
       show: role !== "student",
@@ -88,13 +98,6 @@ const Sidebar = () => {
       icon: Bell,
       href: "/notifications",
       active: pathname.startsWith("/notifications"),
-    },
-    {
-      label: "จัดการผู้ใช้งาน",
-      icon: Users,
-      href: "/admin/users",
-      active: pathname.startsWith("/admin/users"),
-      show: role === "admin",
     },
     {
       label: "ตั้งค่า",
