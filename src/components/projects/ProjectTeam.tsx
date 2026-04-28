@@ -65,6 +65,9 @@ export function ProjectTeam({ projectId, members, ownerId, currentUserId }: Proj
   const roleMap: Record<string, string> = {
     president: "ประธานโครงการ",
     vp: "รองประธานโครงการ",
+    secretary: "เลขานุการโครงการ",
+    treasurer: "เหรัญญิกโครงการ",
+    pr: "ประชาสัมพันธ์โครงการ",
     committee: "กรรมการโครงการ",
     operator: "ผู้ดำเนินโครงการ",
     participant: "ผู้เข้าร่วม/ผู้ช่วย",

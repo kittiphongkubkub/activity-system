@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserPlus, Mail, Shield, Loader2, X, Users } from "lucide-react";
+import { UserPlus, Mail, Shield, Loader2, X, Users, FileText, Award, Sparkles } from "lucide-react";
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -98,12 +98,15 @@ export function InviteModal({ isOpen, onClose, projectId, onSuccess }: InviteMod
 
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">บทบาทในโครงการ</label>
-            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto p-1">
+            <div className="grid grid-cols-2 gap-3 max-h-72 overflow-y-auto p-1 pr-2 custom-scrollbar">
               {[
                 { id: "member", label: "สมาชิกทั่วไป", icon: UserPlus, color: "indigo" },
                 { id: "co_owner", label: "ผู้ช่วยหัวหน้า", icon: Shield, color: "purple" },
                 { id: "president", label: "ประธานโครงการ", icon: Shield, color: "blue" },
                 { id: "vp", label: "รองประธาน", icon: Shield, color: "cyan" },
+                { id: "secretary", label: "เลขานุการ", icon: FileText, color: "rose" },
+                { id: "treasurer", label: "เหรัญญิก", icon: Award, color: "amber" },
+                { id: "pr", label: "ประชาสัมพันธ์", icon: Sparkles, color: "fuchsia" },
                 { id: "committee", label: "กรรมการ", icon: Users, color: "slate" },
                 { id: "operator", label: "ผู้ดำเนินงาน", icon: UserPlus, color: "emerald" },
               ].map((r) => (
@@ -120,7 +123,7 @@ export function InviteModal({ isOpen, onClose, projectId, onSuccess }: InviteMod
                   <div className={`p-2 rounded-xl mb-1 ${role === r.id ? `bg-${r.color}-100` : "bg-white"}`}>
                     <r.icon className="h-4 w-4" />
                   </div>
-                  <span className="text-[11px] font-bold text-center">{r.label}</span>
+                  <span className="text-[10px] font-black text-center uppercase tracking-tight">{r.label}</span>
                 </button>
               ))}
             </div>
