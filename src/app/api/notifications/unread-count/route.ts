@@ -14,5 +14,11 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({ count });
+  // PERF: HTTP-level cache — stale-while-revalidate allows instant response
+  // while background revalidation happens. Cuts repeated badge queries to near-zero.
+  return NextResponse.json({ count }, {
+    headers: {
+      "Cache-Control": "private, max-age=30, stale-while-revalidate=60",
+    },
+  });
 }

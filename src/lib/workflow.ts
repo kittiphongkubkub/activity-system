@@ -53,7 +53,11 @@ export async function createWorkflowSteps(projectId: string, docType: "025" | "0
 
   // Create audit log for submission/resubmission
   if (userId) {
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    // PERF: Select only what's needed for the audit log message
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { status: true, projectName: true },
+    });
     await prisma.auditLog.create({
       data: {
         projectId,
@@ -73,8 +77,17 @@ export async function createWorkflowSteps(projectId: string, docType: "025" | "0
 
 async function rewardActivityScore(projectId: string, tx?: any) {
   const db = tx || prisma;
+  // PERF: Select only the fields needed for scoring logic
   const project = await db.project.findUnique({
     where: { id: projectId },
+    select: {
+      ownerId: true,
+      projectName: true,
+      projectType: true,
+      organizationType: true,
+      studentRole: true,
+      impactLevel: true,
+    },
   });
 
   if (!project) return;
@@ -133,15 +146,31 @@ export async function processStepReview({
   comments?: string;
 }) {
   return await prisma.$transaction(async (tx) => {
+    // PERF: Select only the fields needed — avoids loading description/objectives
+    // and other large text columns inside the transaction (reduces lock hold time)
     const currentStep = await tx.workflowStep.findUnique({
       where: { id: stepId },
-      include: { project: true },
+      select: {
+        id: true,
+        projectId: true,
+        docType: true,
+        stepOrder: true,
+        stepName: true,
+        assigneeRole: true,
+        project: {
+          select: {
+            id: true,
+            status: true,
+            ownerId: true,
+          },
+        },
+      },
     });
 
     if (!currentStep) throw new Error("Step not found");
 
     const { projectId, docType, stepOrder } = currentStep;
-    const currentProjectStatus = currentStep.project.status;
+    const currentProjectStatus = currentStep.project!.status;
 
     if (decision === "approve") {
       await tx.workflowStep.update({
@@ -191,7 +220,7 @@ export async function processStepReview({
           projectId,
           userId: approverId,
           action: "approve",
-          fromStatus: currentStep.project.status,
+          fromStatus: currentStep.project!.status,
           toStatus: finalStatus,
           comments,
           stepName: currentStep.stepName,
@@ -215,7 +244,7 @@ export async function processStepReview({
           projectId,
           userId: approverId,
           action: "request_revision",
-          fromStatus: currentStep.project.status,
+          fromStatus: currentStep.project!.status,
           toStatus: newStatus,
           comments,
           stepName: currentStep.stepName,
@@ -245,7 +274,7 @@ export async function processStepReview({
           projectId,
           userId: approverId,
           action: "reject",
-          fromStatus: currentStep.project.status,
+          fromStatus: currentStep.project!.status,
           toStatus: newStatus,
           comments,
           stepName: currentStep.stepName,

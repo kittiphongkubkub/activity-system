@@ -55,6 +55,8 @@ model Project {
   status               String          @default("draft")
   certificateStatus    String          @default("none") @map("certificate_status")
   currentStep          String?         @map("current_step")
+  // Soft delete — projects are never permanently destroyed
+  deletedAt            DateTime?       @map("deleted_at")
   createdAt            DateTime        @default(now()) @map("created_at")
   updatedAt            DateTime        @updatedAt @map("updated_at")
   activityScores       ActivityScore[]
@@ -71,6 +73,8 @@ model Project {
   @@index([ownerId, updatedAt(sort: Desc)])
   @@index([status, createdAt(sort: Desc)])
   @@index([advisorId])
+  // Soft delete index — filters out deleted projects efficiently
+  @@index([deletedAt])
 }
 
 model Document {
@@ -126,7 +130,10 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 
   @@map("notifications")
+  // PERF: Composite index covers both the userId filter AND the createdAt sort
+  // in a single index scan. Without this, Postgres must sort after filtering.
   @@index([userId, isRead, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model AuditLog {

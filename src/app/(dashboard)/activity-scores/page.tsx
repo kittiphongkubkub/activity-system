@@ -10,6 +10,7 @@ export default async function ActivityScoresPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
+  // Fetch scores with a limit for the UI list
   const scores = await prisma.activityScore.findMany({
     where: { studentId: (session.user as any).id },
     select: {
@@ -26,9 +27,16 @@ export default async function ActivityScoresPage() {
       }
     },
     orderBy: { awardedAt: "desc" },
+    take: 100, // Limit UI list size to prevent massive HTML payloads
   });
 
-  const totalScore = scores.reduce((sum, s) => sum + Number(s.score), 0);
+  // PERF: Use database aggregation to calculate the true total, regardless of UI limit
+  const scoreAggregate = await prisma.activityScore.aggregate({
+    where: { studentId: (session.user as any).id },
+    _sum: { score: true }
+  });
+
+  const totalScore = Number(scoreAggregate._sum.score || 0);
   const targetScore = SCORING_CONFIG.ANNUAL_TARGET;
   const progress = Math.min((totalScore / targetScore) * 100, 100);
 

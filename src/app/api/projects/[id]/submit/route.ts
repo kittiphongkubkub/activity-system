@@ -3,6 +3,8 @@ import prisma from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createWorkflowSteps } from "@/lib/workflow";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function POST(
   req: Request,
@@ -11,6 +13,15 @@ export async function POST(
   const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const userId = (session.user as any).id;
+
+  // Rate limit: 5 submissions per 15 mins per user
+  const rl = await checkRateLimit(`project:submit:${userId}`, 5, 15 * 60_000);
+  if (!rl.success) return NextResponse.json(
+    { error: "Too many submissions. Please wait.", retryAfter: Math.ceil((rl.reset - Date.now()) / 1000) },
+    { status: 429 }
+  );
 
 
   try {
@@ -70,7 +81,7 @@ export async function POST(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(error);
+    logger.error("Failed to submit project", error, { projectId: id, userId: (session?.user as any)?.id });
     return NextResponse.json({ error: "Failed to submit project" }, { status: 500 });
   }
 }

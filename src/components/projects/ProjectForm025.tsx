@@ -6,9 +6,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { project025Schema, Project025Input } from "@/lib/validations/project025";
 import { Save, Send, Loader2, AlertCircle, Upload, X, FileText } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
   const router = useRouter();
+  const { data: session } = useSession();
+  const userRole = (session?.user as any)?.role || "student";
+  
   const [advisors, setAdvisors] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -20,6 +24,7 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<Project025Input>({
     resolver: zodResolver(project025Schema) as any,
     defaultValues: initialData || {
@@ -27,8 +32,17 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
       semester: 1,
       expectedParticipants: 0,
       budgetRequested: 0,
+      userRole: userRole,
+      studentRole: userRole === "student" ? "president" : "staff",
+      organizationType: userRole === "student" ? "union" : "staff",
     },
   });
+
+  useEffect(() => {
+    if (userRole) {
+      setValue("userRole", userRole);
+    }
+  }, [userRole, setValue]);
 
   useEffect(() => {
     fetch("/api/users/advisors")
@@ -165,21 +179,24 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
             {errors.projectType && <p className="mt-1 text-xs text-red-500">{errors.projectType.message}</p>}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700">อาจารย์ที่ปรึกษา</label>
-            <select
-              {...register("advisorId")}
-              className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500"
-            >
-              <option value="">เลือกอาจารย์...</option>
-              {advisors.map((advisor) => (
-                <option key={advisor.id} value={advisor.id}>
-                  {advisor.fullName} ({advisor.department})
-                </option>
-              ))}
-            </select>
-            {errors.advisorId && <p className="mt-1 text-xs text-red-500">{errors.advisorId.message}</p>}
-          </div>
+
+          {userRole === "student" && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700">อาจารย์ที่ปรึกษา</label>
+              <select
+                {...register("advisorId")}
+                className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500"
+              >
+                <option value="">เลือกอาจารย์...</option>
+                {advisors.map((advisor) => (
+                  <option key={advisor.id} value={advisor.id}>
+                    {advisor.fullName} ({advisor.department})
+                  </option>
+                ))}
+              </select>
+              {errors.advisorId && <p className="mt-1 text-xs text-red-500">{errors.advisorId.message}</p>}
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-slate-700">ปีการศึกษา</label>
@@ -204,68 +221,106 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
             {errors.semester && <p className="mt-1 text-xs text-red-500">{errors.semester.message}</p>}
           </div>
 
-          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
-            <div>
-              <label className="block text-sm font-medium text-slate-700">ประเภทองค์กร</label>
-              <select
-                {...register("organizationType")}
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500"
-              >
-                <option value="">เลือกประเภท...</option>
-                <option value="union">สโมสรนักศึกษา</option>
-                <option value="club">ชมรม/คณะวิชา</option>
-                <option value="working_group">คณะทำงานโครงการ</option>
-              </select>
-              {errors.organizationType && <p className="mt-1 text-xs text-red-500">{errors.organizationType.message}</p>}
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700">บทบาทของคุณ</label>
-              <select
-                {...register("studentRole")}
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500"
-              >
-                <option value="">เลือกบทบาท...</option>
-                <option value="president">ประธานโครงการ</option>
-                <option value="vp">รองประธานโครงการ</option>
-                <option value="committee">กรรมการโครงการ</option>
-                <option value="operator">ผู้ดำเนินโครงการ</option>
-                <option value="participant">ผู้เข้าร่วม/ผู้ฟัง</option>
-              </select>
-              {errors.studentRole && <p className="mt-1 text-xs text-red-500">{errors.studentRole.message}</p>}
-            </div>
+          {userRole === "student" && (
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">ประเภทองค์กร</label>
+                <select
+                  {...register("organizationType")}
+                  className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500"
+                >
+                  <option value="">เลือกประเภท...</option>
+                  <option value="union">สโมสรนักศึกษา</option>
+                  <option value="club">ชมรม/คณะวิชา</option>
+                  <option value="working_group">คณะทำงานโครงการ</option>
+                </select>
+                {errors.organizationType && <p className="mt-1 text-xs text-red-500">{errors.organizationType.message}</p>}
+              </div>
 
-            {(require("react-hook-form").useWatch)({ name: "studentRole" }) && (require("react-hook-form").useWatch)({ name: "studentRole" }) !== "president" && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700">บทบาทของคุณ</label>
+                <select
+                  {...register("studentRole")}
+                  className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500"
+                >
+                  <option value="">เลือกบทบาท...</option>
+                  <option value="president">ประธานโครงการ</option>
+                  <option value="vp">รองประธานโครงการ</option>
+                  <option value="committee">กรรมการโครงการ</option>
+                  <option value="operator">ผู้ดำเนินโครงการ</option>
+                  <option value="participant">ผู้เข้าร่วม/ผู้ฟัง</option>
+                </select>
+                {errors.studentRole && <p className="mt-1 text-xs text-red-500">{errors.studentRole.message}</p>}
+              </div>
+
+              {(require("react-hook-form").useWatch)({ name: "studentRole" }) && (require("react-hook-form").useWatch)({ name: "studentRole" }) !== "president" && (
+                <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                  <label className="block text-sm font-medium text-indigo-700 flex items-center">
+                    อีเมลของประธานโครงการ <span className="text-rose-500 ml-1">*</span>
+                  </label>
+                  <input
+                    {...register("presidentEmail")}
+                    className="mt-1 block w-full rounded-lg border border-indigo-200 bg-indigo-50/30 px-4 py-2 outline-none focus:border-indigo-500 focus:bg-white"
+                    placeholder="เช่น president@student.university.ac.th"
+                  />
+                  <p className="mt-1 text-[10px] text-indigo-500 font-medium italic">* เนื่องจากคุณไม่ใช่ประธาน ระบบจะเชิญประธานตามอีเมลนี้อัตโนมัติ</p>
+                  {errors.presidentEmail && <p className="mt-1 text-xs text-red-500 font-bold">{errors.presidentEmail.message}</p>}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">ระดับผลกระทบ</label>
+                <select
+                  {...register("impactLevel")}
+                  className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500"
+                >
+                  <option value="">เลือกระดับ...</option>
+                  <option value="national">ระดับชาติ</option>
+                  <option value="community">ระดับชุมชน</option>
+                  <option value="university">ระดับมหาวิทยาลัย</option>
+                  <option value="faculty">ระดับวิชาชีพ/คณะ</option>
+                  <option value="personal">ระดับส่วนบุคคล</option>
+                </select>
+                {errors.impactLevel && <p className="mt-1 text-xs text-red-500">{errors.impactLevel.message}</p>}
+              </div>
+            </div>
+          )}
+
+          {userRole !== "student" && (
+            <div className="md:col-span-2 space-y-6 pt-4 border-t border-slate-100">
               <div className="animate-in fade-in slide-in-from-top-1 duration-200">
-                <label className="block text-sm font-medium text-indigo-700 flex items-center">
-                  อีเมลของประธานโครงการ <span className="text-rose-500 ml-1">*</span>
+                <label className="block text-sm font-bold text-indigo-700 flex items-center">
+                  อีเมลของนักศึกษาที่จะเป็นประธานโครงการ <span className="text-rose-500 ml-1">*</span>
                 </label>
                 <input
                   {...register("presidentEmail")}
                   className="mt-1 block w-full rounded-lg border border-indigo-200 bg-indigo-50/30 px-4 py-2 outline-none focus:border-indigo-500 focus:bg-white"
-                  placeholder="เช่น president@student.university.ac.th"
+                  placeholder="เช่น student@student.university.ac.th"
                 />
-                <p className="mt-1 text-[10px] text-indigo-500 font-medium italic">* เนื่องจากคุณไม่ใช่ประธาน ระบบจะเชิญประธานตามอีเมลนี้อัตโนมัติ</p>
+                <p className="mt-2 text-xs text-indigo-500 font-medium">
+                  * เนื่องจากคุณสร้างโครงการในฐานะที่ปรึกษา กรุณาระบุอีเมลนักศึกษาที่จะรับหน้าที่เป็นประธานโครงการ
+                </p>
                 {errors.presidentEmail && <p className="mt-1 text-xs text-red-500 font-bold">{errors.presidentEmail.message}</p>}
               </div>
-            )}
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700">ระดับผลกระทบ</label>
-              <select
-                {...register("impactLevel")}
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500"
-              >
-                <option value="">เลือกระดับ...</option>
-                <option value="national">ระดับชาติ</option>
-                <option value="community">ระดับชุมชน</option>
-                <option value="university">ระดับมหาวิทยาลัย</option>
-                <option value="faculty">ระดับวิชาชีพ/คณะ</option>
-                <option value="personal">ระดับส่วนบุคคล</option>
-              </select>
-              {errors.impactLevel && <p className="mt-1 text-xs text-red-500">{errors.impactLevel.message}</p>}
+              <div className="w-3/4">
+                <label className="block text-sm font-medium text-slate-700">ระดับผลกระทบ</label>
+                <select
+                  {...register("impactLevel")}
+                  className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500"
+                >
+                  <option value="">เลือกระดับ...</option>
+                  <option value="national">ระดับชาติ</option>
+                  <option value="community">ระดับชุมชน</option>
+                  <option value="university">ระดับมหาวิทยาลัย</option>
+                  <option value="faculty">ระดับวิชาชีพ/คณะ</option>
+                  <option value="personal">ระดับส่วนบุคคล</option>
+                </select>
+                {errors.impactLevel && <p className="mt-1 text-xs text-red-500">{errors.impactLevel.message}</p>}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 

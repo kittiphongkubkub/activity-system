@@ -16,7 +16,8 @@ export async function GET(
     const userId = (session.user as any).id;
     const userRole = (session.user as any).role;
 
-    // Robust authorization logic (similar to getAuthorizedProject)
+    // PERF: Explicit select — avoids loading description/objectives/expectedOutcome
+    // and prevents nested include from over-fetching member and owner data
     const project = await prisma.project.findFirst({
       where: {
         id,
@@ -28,7 +29,31 @@ export async function GET(
           ...(userRole === "admin" || userRole === "university" ? [{ id }] : [])
         ]
       },
-      include: { 
+      select: {
+        id: true,
+        projectName: true,
+        projectType: true,
+        description: true,
+        objectives: true,
+        expectedOutcome: true,
+        plannedStartDate: true,
+        plannedEndDate: true,
+        location: true,
+        expectedParticipants: true,
+        budgetRequested: true,
+        ownerId: true,
+        advisorId: true,
+        department: true,
+        academicYear: true,
+        semester: true,
+        studentRole: true,
+        impactLevel: true,
+        organizationType: true,
+        status: true,
+        certificateStatus: true,
+        currentStep: true,
+        createdAt: true,
+        updatedAt: true,
         documents: {
           select: {
             id: true,
@@ -37,12 +62,18 @@ export async function GET(
             fileSize: true,
             mimeType: true,
             createdAt: true,
-            // Exclude fileUrl to prevent loading massive base64 strings into memory
           }
         },
-        members: { include: { user: { select: { fullName: true, email: true } } } },
-        owner: { select: { fullName: true, email: true } },
-        advisor: { select: { fullName: true, email: true } }
+        members: {
+          select: {
+            id: true,
+            role: true,
+            status: true,
+            user: { select: { id: true, fullName: true, email: true } }
+          }
+        },
+        owner: { select: { id: true, fullName: true, email: true } },
+        advisor: { select: { id: true, fullName: true, email: true } },
       }
     });
 

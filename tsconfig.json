@@ -30,5 +30,12 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    // Sentry configs require @sentry/nextjs — excluded until package is installed
+    // Run: npm install @sentry/nextjs  then remove these exclusions
+    "sentry.client.config.ts",
+    "sentry.server.config.ts",
+    "sentry.edge.config.ts"
+  ]
 }

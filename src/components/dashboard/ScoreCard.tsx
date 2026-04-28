@@ -1,15 +1,15 @@
-import prisma from "@/lib/db";
 import Link from "next/link";
 import { Award } from "lucide-react";
 import { SCORING_CONFIG } from "@/lib/workflow";
+import { getCachedScoreTotal } from "@/lib/cache";
 
 interface ScoreCardProps {
   userId: string;
 }
 
 export async function ScoreCard({ userId }: ScoreCardProps) {
-  const scores = await prisma.activityScore.findMany({ where: { studentId: userId } });
-  const total = scores.reduce((sum, s) => sum + Number(s.score), 0);
+  // PERF: SQL SUM aggregate + 120s cache — O(1) vs O(N) findMany + JS reduce
+  const { total } = await getCachedScoreTotal(userId);
   const progress = Math.min((total / SCORING_CONFIG.ANNUAL_TARGET) * 100, 100);
 
   return (

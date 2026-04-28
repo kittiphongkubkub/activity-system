@@ -29,12 +29,12 @@ export default async function ProjectsPage({
   
   // FIXED: Added cursor-based pagination (no unbounded findMany)
   const projects = await prisma.project.findMany({
-    take: PAGE_SIZE + 1, // Fetch one extra to detect if there's a next page
+    take: PAGE_SIZE + 1,
     skip: cursor ? 1 : 0,
     cursor: cursor ? { id: cursor } : undefined,
     where: {
       ownerId: userId,
-      // Filter by docType context
+      deletedAt: null, // Exclude soft-deleted projects
       status: { in: status ? [status] : currentStatuses },
       ...(search ? { projectName: { contains: search, mode: 'insensitive' } } : {}),
     },

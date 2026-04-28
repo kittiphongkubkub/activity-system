@@ -1,5 +1,5 @@
-import prisma from "@/lib/db";
 import { FileCheck, Clock, AlertCircle, Users, CheckCircle2 } from "lucide-react";
+import { getCachedStudentStats, getCachedAdminStats } from "@/lib/cache";
 
 interface StatsGridProps {
   userId: string;
@@ -10,12 +10,9 @@ export async function StatsGrid({ userId, role }: StatsGridProps) {
   let stats: any[] = [];
 
   if (role === "student") {
-    const [approvedCount, pendingCount, revisionCount, totalParticipants] = await Promise.all([
-      prisma.project.count({ where: { ownerId: userId, status: "completed" } }),
-      prisma.project.count({ where: { ownerId: userId, status: { in: ["submitted", "under_review", "summary_submitted", "summary_under_review"] } } }),
-      prisma.project.count({ where: { ownerId: userId, status: "revision_required" } }),
-      prisma.project.aggregate({ where: { ownerId: userId }, _sum: { expectedParticipants: true } }),
-    ]);
+    // PERF: Cached for 60s — avoids re-querying DB on every concurrent dashboard load
+    const { approvedCount, pendingCount, revisionCount, totalParticipants } =
+      await getCachedStudentStats(userId);
 
     stats = [
       { label: "โครงการที่สำเร็จแล้ว", value: approvedCount, icon: FileCheck, color: "text-emerald-600", bg: "bg-emerald-50" },
@@ -24,12 +21,9 @@ export async function StatsGrid({ userId, role }: StatsGridProps) {
       { label: "ผู้ร่วมกิจกรรมรวม", value: totalParticipants._sum.expectedParticipants || 0, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
     ];
   } else {
-    const [allProjects, allPending, allCompleted, allUsers] = await Promise.all([
-      prisma.project.count(),
-      prisma.project.count({ where: { status: "under_review" } }),
-      prisma.project.count({ where: { status: "completed" } }),
-      prisma.user.count(),
-    ]);
+    // PERF: Cached for 60s — global admin stats don't need real-time precision
+    const { allProjects, allPending, allCompleted, allUsers } =
+      await getCachedAdminStats();
 
     stats = [
       { label: "โครงการทั้งหมด", value: allProjects, icon: FileCheck, color: "text-indigo-600", bg: "bg-indigo-50" },

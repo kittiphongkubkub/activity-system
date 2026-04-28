@@ -4,6 +4,14 @@ import { useEffect } from "react";
 import { AlertCircle, RefreshCcw, Home } from "lucide-react";
 import Link from "next/link";
 
+// Lazy-load Sentry — no crash if package isn't installed
+let captureException: ((err: unknown) => void) | null = null;
+try {
+  captureException = require("@sentry/nextjs").captureException;
+} catch {
+  // Sentry not installed
+}
+
 export default function Error({
   error,
   reset,
@@ -12,7 +20,12 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    // Forward to Sentry for production debugging
+    if (captureException) {
+      captureException(error);
+    } else {
+      console.error(error);
+    }
   }, [error]);
 
   return (

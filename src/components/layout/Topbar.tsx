@@ -3,28 +3,81 @@
 import { Bell, User, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 const Topbar = () => {
   const { data: session } = useSession();
-  const [unreadCount, setUnreadCount] = (require("react").useState)(0);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
-  (require("react").useEffect)(() => {
-    const fetchUnreadCount = async () => {
-      try {
-        const res = await fetch("/api/notifications/unread-count");
-        const data = await res.json();
-        setUnreadCount(data.count);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    if (session) {
-      fetchUnreadCount();
-      const interval = setInterval(fetchUnreadCount, 30000);
-      return () => clearInterval(interval);
+  const fetchUnreadCount = useCallback(async () => {
+    if (!session) return;
+    try {
+      const res = await fetch("/api/notifications/unread-count");
+      const data = await res.json();
+      setUnreadCount(data.count);
+    } catch (err) {
+      console.error(err);
     }
   }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    // Fetch accurate count once on mount
+    fetchUnreadCount();
+
+    // ── SSE: real-time push ──────────────────────────────────────────
+    // Replaces polling. Server pushes events the instant a notification
+    // is created — no DB hits, no lag, no unnecessary requests.
+    const connectSSE = () => {
+      const es = new EventSource("/api/notifications/stream");
+      eventSourceRef.current = es;
+
+      es.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "new_notification") {
+            // Increment badge immediately — optimistic + accurate
+            setUnreadCount((prev) => prev + 1);
+          } else if (data.type === "unread_count") {
+            setUnreadCount(data.count);
+          }
+          // "connected" type — ignore, no action needed
+        } catch {
+          // Malformed event — ignore
+        }
+      };
+
+      es.onerror = () => {
+        // EventSource auto-reconnects after error, but close and let it retry
+        es.close();
+        eventSourceRef.current = null;
+        // Reconnect after 5s to avoid hammering the server
+        setTimeout(connectSSE, 5_000);
+      };
+    };
+
+    connectSSE();
+
+    // ── Fallback: slow poll every 120s ───────────────────────────────
+    // Keeps the count accurate even if SSE drops (e.g. server restart)
+    const fallbackInterval = setInterval(fetchUnreadCount, 120_000);
+
+    // ── Visibility: re-sync count when user returns to tab ──────────
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchUnreadCount();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      eventSourceRef.current?.close();
+      clearInterval(fallbackInterval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [session, fetchUnreadCount]);
 
   return (
     <header className="flex h-20 items-center justify-between border-b bg-white/70 backdrop-blur-md px-10 sticky top-0 z-40">

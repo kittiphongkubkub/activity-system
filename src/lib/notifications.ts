@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { sseManager } from "@/lib/sse";
 
 export async function createNotification({
   userId,
@@ -14,7 +15,7 @@ export async function createNotification({
   message?: string;
 }, tx?: any) {
   const db = tx || prisma;
-  return await db.notification.create({
+  const notification = await db.notification.create({
     data: {
       userId,
       projectId,
@@ -23,6 +24,23 @@ export async function createNotification({
       message,
     },
   });
+
+  // SSE: push real-time event to the connected client (if any)
+  // Falls back gracefully — no error if user has no active SSE connection
+  sseManager.broadcast(userId, {
+    type: "new_notification",
+    notification: {
+      id: notification.id,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      isRead: false,
+      createdAt: notification.createdAt,
+      projectId: notification.projectId,
+    },
+  });
+
+  return notification;
 }
 
 export async function notifyStatusChange(projectId: string, status: string, tx?: any) {
@@ -108,16 +126,29 @@ export async function notifyNextReviewer(projectId: string, nextStepName: string
 
   // FIXED: Use createMany for a single batch INSERT instead of N sequential INSERTs
   if (usersWithRole.length > 0) {
+    const notificationData = usersWithRole.map((user: { id: string }) => ({
+      userId: user.id,
+      projectId,
+      type: "approval_request",
+      title: "โครงการใหม่รอการอนุมัติ (ตามบทบาทของคุณ)",
+      message: `โครงการ "${project.projectName}" รอการพิจารณาในขั้นตอน: ${nextStepName}`,
+      isRead: false,
+    }));
+
     await db.notification.createMany({
-      data: usersWithRole.map((user: { id: string }) => ({
-        userId: user.id,
-        projectId,
-        type: "approval_request",
-        title: "โครงการใหม่รอการอนุมัติ (ตามบทบาทของคุณ)",
-        message: `โครงการ "${project.projectName}" รอการพิจารณาในขั้นตอน: ${nextStepName}`,
-        isRead: false,
-      })),
+      data: notificationData,
       skipDuplicates: true,
+    });
+
+    // SSE: broadcast to all targeted users so they see it in real-time
+    usersWithRole.forEach((user: { id: string }, index: number) => {
+      sseManager.broadcast(user.id, {
+        type: "new_notification",
+        notification: {
+          ...notificationData[index],
+          createdAt: new Date(),
+        }
+      });
     });
   }
 }

@@ -20,14 +20,19 @@ import { StatusBadge } from "@/components/projects/StatusBadge";
 export default async function ExploreProjectsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; type?: string; status?: string }>;
+  searchParams: Promise<{ search?: string; type?: string; status?: string; cursor?: string }>;
 }) {
-  const { search, type, status } = await searchParams;
+  const { search, type, status, cursor } = await searchParams;
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
-  // Fetch all projects based on filters
+  const PAGE_SIZE = 20;
+
+  // Fetch projects with cursor-based pagination
   const projects = await prisma.project.findMany({
+    take: PAGE_SIZE + 1,
+    cursor: cursor ? { id: cursor } : undefined,
+    skip: cursor ? 1 : 0,
     where: {
       // Default to approved/completed statuses if no specific status filter
       status: status ? status : { in: ["approved", "summary_submitted", "summary_under_review", "completed"] },
@@ -48,6 +53,10 @@ export default async function ExploreProjectsPage({
       }
     }
   });
+
+  const hasNextPage = projects.length > PAGE_SIZE;
+  const displayProjects = hasNextPage ? projects.slice(0, PAGE_SIZE) : projects;
+  const nextCursor = hasNextPage ? displayProjects[displayProjects.length - 1].id : null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -76,7 +85,7 @@ export default async function ExploreProjectsPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {projects.length === 0 ? (
+              {displayProjects.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-8 py-20 text-center">
                     <div className="flex flex-col items-center">
@@ -88,7 +97,7 @@ export default async function ExploreProjectsPage({
                   </td>
                 </tr>
               ) : (
-                projects.map((project) => (
+                displayProjects.map((project) => (
                   <tr key={project.id} className="group hover:bg-slate-50/80 transition-colors">
                     <td className="px-8 py-6">
                       <div className="flex items-center">
@@ -136,6 +145,28 @@ export default async function ExploreProjectsPage({
         </div>
       </div>
 
+      {/* Pagination Controls */}
+      { (cursor || nextCursor) && (
+        <div className="flex items-center justify-center space-x-4">
+          {cursor && (
+            <Link
+              href={`/projects/explore?${new URLSearchParams({ ...(type ? { type } : {}), ...(status ? { status } : {}), ...(search ? { search } : {}) }).toString()}`}
+              className="rounded-xl border bg-white px-6 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all"
+            >
+              กลับต้น
+            </Link>
+          )}
+          {nextCursor && (
+            <Link
+              href={`/projects/explore?${new URLSearchParams({ ...(type ? { type } : {}), ...(status ? { status } : {}), ...(search ? { search } : {}), cursor: nextCursor }).toString()}`}
+              className="rounded-xl bg-indigo-600 px-8 py-2 text-sm font-bold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-100 transition-all"
+            >
+              ดูเพิ่มเติม
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* Promotion/Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 rounded-[32px] bg-gradient-to-br from-indigo-600 to-purple-700 p-8 text-white shadow-xl shadow-indigo-200 relative overflow-hidden group">
@@ -157,8 +188,8 @@ export default async function ExploreProjectsPage({
               <Users className="h-8 w-8" />
            </div>
            <div>
-              <p className="text-3xl font-black text-slate-900">{projects.length}</p>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">โครงการที่เปิดรับตอนนี้</p>
+              <p className="text-3xl font-black text-slate-900">{displayProjects.length}</p>
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">โครงการที่เปิดรับในหน้านี้</p>
            </div>
         </div>
       </div>
