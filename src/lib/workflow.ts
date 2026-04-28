@@ -1,5 +1,5 @@
 import prisma from "@/lib/db";
-import { notifyStatusChange, createNotification } from "./notifications";
+import { notifyStatusChange, createNotification, notifyNextReviewer } from "./notifications";
 import { assertValidTransition } from "./workflow-states";
 
 export const WORKFLOW_ROLES = [
@@ -197,8 +197,7 @@ export async function processStepReview({
           data: { currentStep: nextStep.stepName, status: finalStatus },
         });
 
-        // Notify the next reviewer (Triggered outside the critical data transaction but still logically part of it)
-        const { notifyNextReviewer } = await import("./notifications");
+        // Notify the next reviewer
         await notifyNextReviewer(projectId, nextStep.stepName, nextStep.assigneeRole, nextStep.assigneeId);
       } else {
         finalStatus = docType === "025" ? "approved" : "completed";

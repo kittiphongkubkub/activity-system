@@ -30,12 +30,15 @@ export default function ReviewForm({
         body: JSON.stringify({ stepId, decision, comments }),
       });
 
-      if (!res.ok) throw new Error("บันทึกการพิจารณาไม่สำเร็จ");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error || "บันทึกการพิจารณาไม่สำเร็จ");
+      }
 
       router.push("/approvals");
       router.refresh();
-    } catch (err) {
-      alert("เกิดข้อผิดพลาด");
+    } catch (err: any) {
+      alert(err.message || "เกิดข้อผิดพลาด");
     } finally {
       setLoading(false);
     }
