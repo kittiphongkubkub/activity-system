@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { InviteModal } from "./InviteModal";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface Member {
   id: string;
