@@ -43,31 +43,39 @@ export async function PUT(
 
     // Use transaction to ensure both delete and update happen together
     const project = await prisma.$transaction(async (tx) => {
-      // 1. Delete old documents if new ones are provided
-      if (body.attachments) {
-        await tx.document.deleteMany({
-          where: { projectId: id }
-        });
-      }
+      // 1. Determine which documents to keep (those that already have an ID)
+      const existingDocIds = body.attachments
+        ?.filter((a: any) => a.id)
+        .map((a: any) => a.id) || [];
 
-      // 2. Update the project
+      // 2. Delete documents that are NOT in the 'keep' list
+      await tx.document.deleteMany({
+        where: { 
+          projectId: id,
+          id: { notIn: existingDocIds }
+        }
+      });
+
+      // 3. Update the project and create ONLY NEW documents
       return await tx.project.update({
         where: { id, ownerId: userId },
         data: {
           ...validatedData,
           plannedStartDate: new Date(validatedData.plannedStartDate),
           plannedEndDate: new Date(validatedData.plannedEndDate),
-          // Create new documents from the provided list
-          documents: body.attachments?.length > 0 ? {
-            create: body.attachments.map((file: any) => ({
-              docType: "attachment",
-              fileName: file.fileName,
-              fileUrl: file.fileUrl,
-              fileSize: file.fileSize,
-              mimeType: file.mimeType,
-              uploadedBy: userId,
-            }))
-          } : undefined,
+          // Only create documents that don't have an ID yet
+          documents: {
+            create: body.attachments
+              ?.filter((a: any) => !a.id)
+              .map((file: any) => ({
+                docType: "attachment",
+                fileName: file.fileName,
+                fileUrl: file.fileUrl,
+                fileSize: file.fileSize,
+                mimeType: file.mimeType,
+                uploadedBy: userId,
+              })) || [],
+          },
         },
       });
     });

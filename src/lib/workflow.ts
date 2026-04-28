@@ -12,6 +12,11 @@ export const WORKFLOW_ROLES = [
 
 // --- SCORING CONFIGURATION BASED ON NEW IMAGE GUIDELINES ---
 
+export const SCORING_CONFIG = {
+  HONOR_AWARD_THRESHOLD: 85,
+  ANNUAL_TARGET: 100,
+};
+
 const MANAGEMENT_SCORES: Record<string, Record<string, number>> = {
   union: { president: 10, vp: 8, committee: 5 },
   club: { president: 8, vp: 6, committee: 4 },

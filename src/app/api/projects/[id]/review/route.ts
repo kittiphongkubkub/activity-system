@@ -17,9 +17,12 @@ export async function POST(
     const userId = (session.user as any).id;
     const userRole = (session.user as any).role;
 
-    // Security check: Verify the user owns this role for the step
-    const step = await prisma.workflowStep.findUnique({
-      where: { id: stepId },
+    // Security check: Verify the user owns this role for the step and step belongs to project
+    const step = await prisma.workflowStep.findFirst({
+      where: { 
+        id: stepId,
+        projectId: id 
+      },
     });
 
     if (!step || step.assigneeRole !== userRole || step.status !== "in_review") {

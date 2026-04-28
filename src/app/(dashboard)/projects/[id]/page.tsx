@@ -27,40 +27,20 @@ import ReviewForm from "@/components/approvals/ReviewForm";
 import PrintButton from "./PrintButton"; // New client component
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { ProjectTeam } from "@/components/projects/ProjectTeam";
+
+import { getAuthorizedProject } from "@/lib/auth-check";
 
 export default async function ProjectDetailPage(props: {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ review?: string }>;
 }) {
   const params = await props.params;
-  const searchParams = await props.searchParams;
-  const session = await getServerSession(authOptions);
-  const user = session?.user as any;
-  const userRole = user?.role;
-
-  const project = await prisma.project.findUnique({
-    where: { id: params.id },
-    include: {
-      workflowSteps: true,
-      advisor: true,
-      documents: true,
-      auditLogs: {
-        include: {
-          user: {
-            select: {
-              fullName: true,
-              role: true,
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      }
-    },
-  });
+  const { project, user } = await getAuthorizedProject(params.id);
 
   if (!project) notFound();
+  
+  const userRole = user?.role;
 
   // Check if there's a pending review for the current user
   const activeReviewStep = project.workflowSteps.find(
@@ -255,6 +235,16 @@ export default async function ProjectDetailPage(props: {
               </div>
             </div>
           </div>
+
+          {/* Team Members Section */}
+          <section className="rounded-[40px] border bg-white p-10 shadow-sm mt-10 border-slate-100">
+            <ProjectTeam 
+              projectId={project.id} 
+              members={project.members as any} 
+              ownerId={project.ownerId}
+              currentUserId={user?.id}
+            />
+          </section>
 
           {/* Audit History Timeline (Historical) */}
           <section className="rounded-[32px] border bg-slate-50/50 p-8 shadow-sm mt-8 border-slate-200/60">

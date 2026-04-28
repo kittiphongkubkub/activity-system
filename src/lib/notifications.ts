@@ -93,9 +93,14 @@ export async function notifyNextReviewer(projectId: string, nextStepName: string
     return;
   }
 
-  // Case 3: Broadcast to Role (e.g. Dean, Program Chair)
+  // Case 3: Broadcast to Role (e.g. Dean, Program Chair) within same department/faculty
   const usersWithRole = await prisma.user.findMany({
-    where: { role: assigneeRole, isActive: true },
+    where: { 
+      role: assigneeRole, 
+      isActive: true,
+      // Only filter by department if the project has one specified
+      ...(project.department ? { department: project.department } : {})
+    },
     select: { id: true },
   });
 

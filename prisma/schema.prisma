@@ -24,9 +24,10 @@ model User {
   documents       Document[]
   notifications   Notification[]
   advisedProjects Project[]       @relation("ProjectAdvisor")
-  ownedProjects   Project[]       @relation("ProjectOwner")
-  workflowSteps   WorkflowStep[]
-  auditLogs       AuditLog[]
+  ownedProjects      Project[]       @relation("ProjectOwner")
+  workflowSteps      WorkflowStep[]
+  auditLogs          AuditLog[]
+  projectMemberships ProjectMember[]
 
   @@map("users")
 }
@@ -64,8 +65,12 @@ model Project {
   owner                User            @relation("ProjectOwner", fields: [ownerId], references: [id])
   workflowSteps        WorkflowStep[]
   auditLogs            AuditLog[]
+  members              ProjectMember[]
 
   @@map("projects")
+  @@index([ownerId])
+  @@index([status])
+  @@index([advisorId])
 }
 
 model WorkflowStep {
@@ -155,6 +160,7 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 
   @@map("notifications")
+  @@index([userId])
 }
 
 model AuditLog {

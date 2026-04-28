@@ -1,6 +1,7 @@
 import prisma from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { SCORING_CONFIG } from "@/lib/workflow";
 import { 
   FileCheck, 
   Clock, 
@@ -15,6 +16,7 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StatusBadge } from "@/components/projects/StatusBadge";
+import { InvitationList } from "@/components/projects/InvitationList";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -51,7 +53,7 @@ export default async function DashboardPage() {
 
     const scores = await prisma.activityScore.findMany({ where: { studentId: userId } });
     const total = scores.reduce((sum, s) => sum + Number(s.score), 0);
-    scoreData = { total, progress: Math.min((total / 100) * 100, 100) };
+    scoreData = { total, progress: Math.min((total / SCORING_CONFIG.ANNUAL_TARGET) * 100, 100) };
   } else {
     const [allProjects, allPending, allCompleted, allUsers] = await Promise.all([
       prisma.project.count(),
@@ -193,21 +195,21 @@ export default async function DashboardPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between text-xs font-black uppercase tracking-widest text-slate-400">
                     <span>Progress</span>
-                    <span className="text-white">{Math.min(Math.round((scoreData.total / 85) * 100), 100)}%</span>
+                    <span className="text-white">{Math.min(Math.round((scoreData.total / SCORING_CONFIG.ANNUAL_TARGET) * 100), 100)}%</span>
                   </div>
                   <div className="h-3 w-full rounded-full bg-white/10 p-0.5">
                     <div 
                       className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 shadow-[0_0_20px_rgba(99,102,241,0.6)] transition-all duration-1000" 
-                      style={{ width: `${Math.min((scoreData.total / 85) * 100, 100)}%` }} 
+                      style={{ width: `${Math.min((scoreData.total / SCORING_CONFIG.ANNUAL_TARGET) * 100, 100)}%` }} 
                     />
                   </div>
                 </div>
 
-                <div className={`rounded-2xl p-5 border ${scoreData.total >= 85 ? 'bg-amber-500/10 border-amber-500/20 text-amber-200' : 'bg-white/5 border-white/10 text-slate-300'}`}>
+                <div className={`rounded-2xl p-5 border ${scoreData.total >= SCORING_CONFIG.HONOR_AWARD_THRESHOLD ? 'bg-amber-500/10 border-amber-500/20 text-amber-200' : 'bg-white/5 border-white/10 text-slate-300'}`}>
                    <p className="text-xs font-bold leading-relaxed">
-                      {scoreData.total >= 85 
+                      {scoreData.total >= SCORING_CONFIG.HONOR_AWARD_THRESHOLD 
                         ? "ยินดีด้วย! คุณได้รับรางวัลเกียรติยศประจำปีนี้แล้ว สามารถตรวจสอบเกียรติบัตรได้ในหน้าตั้งค่า" 
-                        : `คุณต้องการอีก ${Math.max(85 - scoreData.total, 0)} คะแนนเพื่อรับรางวัลเกียรติยศ`}
+                        : `คุณต้องการอีก ${Math.max(SCORING_CONFIG.HONOR_AWARD_THRESHOLD - scoreData.total, 0)} คะแนนเพื่อรับรางวัลเกียรติยศ`}
                    </p>
                 </div>
 
@@ -215,6 +217,13 @@ export default async function DashboardPage() {
                   View Full Report
                 </Link>
               </div>
+            </div>
+          )}
+
+          {/* Invitations Section */}
+          {role === "student" && (
+            <div className="rounded-[32px] bg-white border border-slate-100 p-8 shadow-sm">
+              <InvitationList />
             </div>
           )}
 
