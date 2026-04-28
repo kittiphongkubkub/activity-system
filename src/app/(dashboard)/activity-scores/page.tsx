@@ -117,26 +117,24 @@ export default async function ActivityScoresPage() {
               </div>
             ) : (
               scores.map((score, index) => (
-                <div 
+                <Link 
                   key={score.id} 
-                  className="group relative flex items-center justify-between rounded-[32px] border border-slate-100 bg-white p-8 shadow-sm transition-all hover:shadow-xl hover:border-indigo-100 hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4 duration-500"
+                  href={`/projects/${score.projectId}`}
+                  className="group relative flex items-center justify-between rounded-[32px] border border-slate-100 bg-white p-8 shadow-sm transition-all hover:shadow-2xl hover:border-indigo-200 hover:-translate-y-1 animate-in fade-in slide-in-from-bottom-4 duration-500"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-center space-x-6">
-                    <div className="h-16 w-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all duration-500">
+                    <div className="h-16 w-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all duration-500">
                       <FileText className="h-8 w-8" />
                     </div>
                     <div>
-                      <Link 
-                        href={`/projects/${score.projectId}`}
-                        className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center"
-                      >
-                        {score.project.projectName}
-                        <ChevronRight className="h-4 w-4 ml-1 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
-                      </Link>
+                      <div className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center">
+                        {score.project?.projectName || score.activityType || "กิจกรรมสะสมคะแนน"}
+                        <ChevronRight className="h-4 w-4 ml-2 text-indigo-400 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
+                      </div>
                       <div className="flex items-center mt-1 space-x-4">
-                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                            {score.activityType}
+                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                            {score.activityType || "ทั่วไป"}
                          </span>
                          <div className="flex items-center text-xs font-bold text-slate-400">
                             <Calendar className="mr-1.5 h-3.5 w-3.5" />
@@ -155,7 +153,7 @@ export default async function ActivityScoresPage() {
                     </div>
                     <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mt-1 group-hover:text-emerald-400 transition-colors">Verified Activity</p>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </div>
