@@ -37,7 +37,10 @@ export async function POST(
         project: {
           select: {
             advisorId: true,
-            department: true
+            department: true,
+            owner: {
+              select: { department: true }
+            }
           }
         }
       }
@@ -52,8 +55,9 @@ export async function POST(
       return NextResponse.json({ error: "คุณไม่ได้เป็นอาจารย์ที่ปรึกษาของโครงการนี้" }, { status: 403 });
     }
 
-    // For department-specific roles, check department match
-    if ((userRole === "dept_head" || userRole === "program_chair") && step.project.department !== (session.user as any).department) {
+    // For department-specific roles, check department match (fallback to owner's department if project's is null)
+    const projectDepartment = step.project.department || step.project.owner.department;
+    if ((userRole === "dept_head" || userRole === "program_chair") && projectDepartment !== (session.user as any).department) {
       return NextResponse.json({ error: "โครงการนี้ไม่ได้อยู่ในสาขา/ภาควิชาของคุณ" }, { status: 403 });
     }
 
