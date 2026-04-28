@@ -104,7 +104,7 @@ export function ProjectTeam({ projectId, members, ownerId, currentUserId }: Proj
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-4">
                 <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-lg font-black bg-indigo-600 text-white shadow-lg shadow-indigo-200">
-                  👑
+                  <Shield className="h-6 w-6" />
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
