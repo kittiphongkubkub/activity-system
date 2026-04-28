@@ -32,7 +32,10 @@ export default async function NotificationsPage() {
       createdAt: true,
       projectId: true,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: [
+      { isRead: "asc" },
+      { createdAt: "desc" }
+    ],
     take: 50,
   });
 
