@@ -118,12 +118,9 @@ export default async function ActivityScoresPage() {
             ) : (
               scores.map((score, index) => {
                 const isClickable = !!score.project;
-                const Container = (isClickable ? Link : "div") as any;
                 
-                return (
-                  <Container 
-                    key={score.id} 
-                    href={isClickable ? `/projects/${score.projectId}` : undefined}
+                const CardContent = (
+                  <div 
                     className={`group relative flex items-center justify-between rounded-[32px] border border-slate-100 bg-white p-8 shadow-sm transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 ${isClickable ? 'hover:shadow-2xl hover:border-indigo-200 hover:-translate-y-1 cursor-pointer' : 'cursor-default'}`}
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
@@ -159,8 +156,18 @@ export default async function ActivityScoresPage() {
                       </div>
                       <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mt-1 transition-colors group-hover:text-emerald-400">Verified Activity</p>
                     </div>
-                  </Container>
+                  </div>
                 );
+
+                if (isClickable) {
+                  return (
+                    <Link key={score.id} href={`/projects/${score.projectId}`} className="block">
+                      {CardContent}
+                    </Link>
+                  );
+                }
+
+                return <div key={score.id}>{CardContent}</div>;
               })
             )}
           </div>
