@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { StatusBadge } from "@/components/projects/StatusBadge";
+import { ExploreSearch } from "@/components/projects/ExploreSearch";
 
 export default async function ExploreProjectsPage({
   searchParams,
@@ -58,20 +58,7 @@ export default async function ExploreProjectsPage({
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-          <input
-            type="text"
-            placeholder="ค้นหาชื่อโครงการ, ประเภทกิจกรรม หรือสถานที่..."
-            className="w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 py-4 text-sm font-medium outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all"
-          />
-        </div>
-        <button className="flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
-          <Filter className="mr-2 h-4 w-4" />
-          ตัวกรอง
-        </button>
-      </div>
+      <ExploreSearch />
 
       {/* Projects List */}
       <div className="rounded-[32px] border border-slate-100 bg-white shadow-sm overflow-hidden">
