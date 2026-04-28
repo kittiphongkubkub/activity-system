@@ -1,15 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { UserPlus, Mail, Shield, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { UserPlus, Mail, Shield, Loader2, X } from "lucide-react";
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -23,6 +15,15 @@ export function InviteModal({ isOpen, onClose, projectId, onSuccess }: InviteMod
   const [role, setRole] = useState("member");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Handle escape key to close
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,20 +51,36 @@ export function InviteModal({ isOpen, onClose, projectId, onSuccess }: InviteMod
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md rounded-[32px] border-none shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight flex items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
+        onClick={onClose}
+      />
+      
+      {/* Modal Content */}
+      <div className="relative w-full max-w-md transform overflow-hidden rounded-[32px] bg-white p-8 shadow-2xl transition-all animate-in fade-in zoom-in duration-200">
+        <button 
+          onClick={onClose}
+          className="absolute right-6 top-6 p-2 text-slate-300 hover:text-slate-500 hover:bg-slate-50 rounded-full transition-all"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        <div className="mb-6">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center">
             <UserPlus className="mr-3 h-6 w-6 text-indigo-600" />
             เชิญสมาชิกเข้าร่วมโครงการ
-          </DialogTitle>
-          <DialogDescription className="text-slate-500 font-medium pt-2">
+          </h2>
+          <p className="text-slate-500 font-medium pt-2 text-sm">
             ค้นหานักศึกษาด้วยอีเมลมหาวิทยาลัยเพื่อเชิญเข้าร่วมทีมโครงการนี้
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
 
-        <form onSubmit={handleInvite} className="space-y-6 py-4">
+        <form onSubmit={handleInvite} className="space-y-6">
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">อีเมลนักศึกษา</label>
             <div className="relative group">
@@ -121,7 +138,7 @@ export function InviteModal({ isOpen, onClose, projectId, onSuccess }: InviteMod
             </div>
           )}
 
-          <DialogFooter className="pt-4">
+          <div className="pt-4 flex space-x-3">
             <button
               type="button"
               onClick={onClose}
@@ -136,9 +153,9 @@ export function InviteModal({ isOpen, onClose, projectId, onSuccess }: InviteMod
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "ส่งคำเชิญ"}
             </button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
