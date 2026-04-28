@@ -62,15 +62,25 @@ export function ProjectTeam({ projectId, members, ownerId, currentUserId }: Proj
     }
   };
 
+  const roleMap: Record<string, string> = {
+    president: "ประธานโครงการ",
+    vp: "รองประธานโครงการ",
+    committee: "กรรมการโครงการ",
+    operator: "ผู้ดำเนินโครงการ",
+    participant: "ผู้เข้าร่วม/ผู้ช่วย",
+    co_owner: "ผู้ช่วยหัวหน้าโครงการ (Co-Owner)",
+    member: "สมาชิกทั่วไป",
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center">
             <Users className="mr-3 h-6 w-6 text-indigo-600" />
-            สมาชิกทีมโครงการ
+            รายชื่อคณะกรรมการ/สมาชิก
           </h3>
-          <p className="text-sm text-slate-500 font-medium">จัดการผู้รับผิดชอบร่วมและผู้ช่วยดำเนินงาน</p>
+          <p className="text-sm text-slate-500 font-medium">จัดการบทบาทและสมาชิกผู้รับผิดชอบโครงการ</p>
         </div>
         
         {canManage && (
@@ -84,6 +94,34 @@ export function ProjectTeam({ projectId, members, ownerId, currentUserId }: Proj
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Owner Card (Always First) */}
+        {members.find(m => m.userId === ownerId) === undefined && (
+          <div className="group relative rounded-3xl border p-5 transition-all hover:shadow-xl bg-white border-indigo-100 ring-1 ring-indigo-50">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-lg font-black bg-indigo-600 text-white shadow-lg shadow-indigo-200">
+                  👑
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <p className="font-black text-slate-900">หัวหน้าโครงการ (เจ้าของ)</p>
+                    <div className="bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase px-2 py-0.5 rounded-md border border-indigo-100">
+                      Owner
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">ผู้สร้างโครงการและผู้รับผิดชอบหลัก</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center justify-between border-t border-slate-50 pt-4">
+              <div className="flex items-center text-[10px] font-black uppercase text-indigo-500 tracking-widest">
+                <Shield className="mr-1.5 h-3.5 w-3.5" />
+                สิทธิ์จัดการสูงสุด
+              </div>
+            </div>
+          </div>
+        )}
+
         {members.map((member) => (
           <div 
             key={member.id}
@@ -101,17 +139,20 @@ export function ProjectTeam({ projectId, members, ownerId, currentUserId }: Proj
                 <div>
                   <div className="flex items-center space-x-2">
                     <p className="font-black text-slate-900">{member.user.fullName}</p>
-                    {member.role === 'co_owner' && (
-                      <div className="bg-purple-50 text-purple-600 text-[10px] font-black uppercase px-2 py-0.5 rounded-md border border-purple-100">
-                        Co-Owner
-                      </div>
-                    )}
                   </div>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5">{member.user.studentId} • {member.user.email}</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    <div className={cn(
+                      "text-[10px] font-black uppercase px-2 py-0.5 rounded-md border",
+                      member.role === 'co_owner' ? "bg-purple-50 text-purple-600 border-purple-100" : "bg-slate-50 text-slate-500 border-slate-200"
+                    )}>
+                      {roleMap[member.role] || member.role}
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium mt-1.5">{member.user.studentId} • {member.user.email}</p>
                 </div>
               </div>
 
-              {canManage && member.userId !== currentUserId && (
+              {canManage && member.userId !== ownerId && (
                 <button
                   onClick={() => handleRemoveMember(member.id)}
                   disabled={loadingMemberId === member.id}
@@ -143,7 +184,7 @@ export function ProjectTeam({ projectId, members, ownerId, currentUserId }: Proj
               </div>
               
               <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                เข้าร่วมเมื่อ {new Date(member.joinedAt).toLocaleDateString("th-TH")}
+                {member.status === 'accepted' ? 'เข้าร่วมเมื่อ' : 'เชิญเมื่อ'} {new Date(member.joinedAt).toLocaleDateString("th-TH")}
               </p>
             </div>
           </div>

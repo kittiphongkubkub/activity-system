@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserPlus, Mail, Shield, Loader2, X } from "lucide-react";
+import { UserPlus, Mail, Shield, Loader2, X, Users } from "lucide-react";
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -98,36 +98,31 @@ export function InviteModal({ isOpen, onClose, projectId, onSuccess }: InviteMod
 
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">บทบาทในโครงการ</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole("member")}
-                className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
-                  role === "member" 
-                    ? "border-indigo-500 bg-indigo-50 text-indigo-700" 
-                    : "border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200"
-                }`}
-              >
-                <div className={`p-2 rounded-xl mb-2 ${role === "member" ? "bg-indigo-100" : "bg-white"}`}>
-                  <UserPlus className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-bold">สมาชิกทั่วไป</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRole("co_owner")}
-                className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
-                  role === "co_owner" 
-                    ? "border-purple-500 bg-purple-50 text-purple-700" 
-                    : "border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200"
-                }`}
-              >
-                <div className={`p-2 rounded-xl mb-2 ${role === "co_owner" ? "bg-purple-100" : "bg-white"}`}>
-                  <Shield className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-bold">ผู้ช่วยหัวหน้า</span>
-              </button>
+            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto p-1">
+              {[
+                { id: "member", label: "สมาชิกทั่วไป", icon: UserPlus, color: "indigo" },
+                { id: "co_owner", label: "ผู้ช่วยหัวหน้า", icon: Shield, color: "purple" },
+                { id: "president", label: "ประธานโครงการ", icon: Shield, color: "blue" },
+                { id: "vp", label: "รองประธาน", icon: Shield, color: "cyan" },
+                { id: "committee", label: "กรรมการ", icon: Users, color: "slate" },
+                { id: "operator", label: "ผู้ดำเนินงาน", icon: UserPlus, color: "emerald" },
+              ].map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setRole(r.id)}
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${
+                    role === r.id 
+                      ? `border-${r.color}-500 bg-${r.color}-50 text-${r.color}-700` 
+                      : "border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200"
+                  }`}
+                >
+                  <div className={`p-2 rounded-xl mb-1 ${role === r.id ? `bg-${r.color}-100` : "bg-white"}`}>
+                    <r.icon className="h-4 w-4" />
+                  </div>
+                  <span className="text-[11px] font-bold text-center">{r.label}</span>
+                </button>
+              ))}
             </div>
           </div>
 
