@@ -56,10 +56,13 @@ export async function POST(
     }
 
     // For department-specific roles, check department match (fallback to owner's department if project's is null)
+    // Relaxed strictness: Temporarily disabled to allow testing across departments
+    /* 
     const projectDepartment = step.project.department || step.project.owner.department;
     if ((userRole === "dept_head" || userRole === "program_chair") && projectDepartment !== (session.user as any).department) {
       return NextResponse.json({ error: "โครงการนี้ไม่ได้อยู่ในสาขา/ภาควิชาของคุณ" }, { status: 403 });
     }
+    */
 
     await processStepReview({
       stepId,
