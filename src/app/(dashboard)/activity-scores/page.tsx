@@ -118,7 +118,7 @@ export default async function ActivityScoresPage() {
             ) : (
               scores.map((score, index) => {
                 const isClickable = !!score.project;
-                const Container = isClickable ? Link : 'div';
+                const Container = (isClickable ? Link : "div") as any;
                 
                 return (
                   <Container 
