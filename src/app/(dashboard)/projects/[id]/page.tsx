@@ -102,7 +102,7 @@ export default async function ProjectDetailPage(props: {
           </Link>
         )}
 
-        {project.status === "summary_revision_required" && (session?.user as any)?.id === project.ownerId && (
+        {project.status === "summary_revision_required" && user?.id === project.ownerId && (
           <Link
             href={`/projects/${project.id}/summary`}
             className="flex items-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
