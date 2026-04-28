@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { project025Schema, Project025Input } from "@/lib/validations/project025";
 import { Save, Send, Loader2, AlertCircle, Upload, X, FileText } from "lucide-react";
@@ -25,6 +25,7 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
     formState: { errors },
     reset,
     setValue,
+    control,
   } = useForm<Project025Input>({
     resolver: zodResolver(project025Schema) as any,
     defaultValues: initialData || {
@@ -36,6 +37,11 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
       studentRole: userRole === "student" ? "president" : "staff",
       organizationType: userRole === "student" ? "union" : "staff",
     },
+  });
+
+  const studentRoleWatch = useWatch({
+    control,
+    name: "studentRole",
   });
 
   useEffect(() => {
@@ -254,7 +260,7 @@ const ProjectForm025 = ({ initialData }: { initialData?: any }) => {
                 {errors.studentRole && <p className="mt-1 text-xs text-red-500">{errors.studentRole.message}</p>}
               </div>
 
-              {(require("react-hook-form").useWatch)({ name: "studentRole" }) && (require("react-hook-form").useWatch)({ name: "studentRole" }) !== "president" && (
+              {studentRoleWatch && studentRoleWatch !== "president" && (
                 <div className="animate-in fade-in slide-in-from-top-1 duration-200">
                   <label className="block text-sm font-medium text-indigo-700 flex items-center">
                     อีเมลของประธานโครงการ <span className="text-rose-500 ml-1">*</span>
