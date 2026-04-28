@@ -20,7 +20,7 @@ interface Member {
   userId: string;
   role: string;
   status: string;
-  joinedAt: string;
+  createdAt: string;
   user: {
     fullName: string;
     email: string;
@@ -188,7 +188,7 @@ export function ProjectTeam({ projectId, members, ownerId, currentUserId }: Proj
               </div>
               
               <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                {member.status === 'accepted' ? 'เข้าร่วมเมื่อ' : 'เชิญเมื่อ'} {new Date(member.joinedAt).toLocaleDateString("th-TH")}
+                {member.status === 'accepted' ? 'เพิ่มเมื่อ' : 'เชิญเมื่อ'} {new Date(member.createdAt).toLocaleDateString("th-TH")}
               </p>
             </div>
           </div>

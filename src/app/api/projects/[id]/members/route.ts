@@ -65,13 +65,26 @@ export async function POST(
       return NextResponse.json({ error: "User is the owner of this project" }, { status: 400 });
     }
 
-    // Create membership with pending status
+    const roleMap: any = {
+      president: "ประธานโครงการ",
+      vp: "รองประธานโครงการ",
+      secretary: "เลขานุการโครงการ",
+      treasurer: "เหรัญญิกโครงการ",
+      pr: "ประชาสัมพันธ์โครงการ",
+      committee: "กรรมการโครงการ",
+      operator: "ผู้ดำเนินโครงการ",
+      participant: "ผู้เข้าร่วม/ผู้ช่วย",
+      co_owner: "ผู้ช่วยหัวหน้าโครงการ (Co-Owner)",
+      member: "สมาชิกทั่วไป",
+    };
+
+    // Create membership with accepted status (Auto-accept)
     const membership = await prisma.projectMember.create({
       data: {
         projectId: id,
         userId: targetUser.id,
         role: role || "member",
-        status: "pending"
+        status: "accepted"
       }
     });
 
@@ -80,8 +93,8 @@ export async function POST(
       userId: targetUser.id,
       projectId: id,
       type: "invitation",
-      title: "คุณได้รับเชิญเข้าร่วมโครงการ",
-      message: `คุณได้รับเชิญเข้าร่วมโครงการ "${project.projectName}" ในบทบาท ${role === "co_owner" ? "ผู้ช่วยหัวหน้าโครงการ" : "สมาชิก"}`,
+      title: "คุณถูกเพิ่มเข้าร่วมโครงการใหม่",
+      message: `คุณถูกเพิ่มเข้าร่วมโครงการ "${project.projectName}" ในบทบาท ${roleMap[role] || role}`,
     });
 
     return NextResponse.json(membership);

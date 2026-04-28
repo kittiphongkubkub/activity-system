@@ -25,7 +25,7 @@ export default async function ApprovalsPage() {
         }
       }
     },
-    orderBy: { createdAt: "asc" }
+    orderBy: { createdAt: "desc" }
   });
 
   return (
