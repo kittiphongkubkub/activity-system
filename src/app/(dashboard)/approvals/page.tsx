@@ -43,7 +43,7 @@ export default async function ApprovalsPage(props: { searchParams: Promise<{ cur
         },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { updatedAt: "desc" },
   });
 
   const hasNextPage = pendingApprovals.length > PAGE_SIZE;
