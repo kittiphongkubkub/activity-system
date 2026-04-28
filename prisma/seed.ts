@@ -25,7 +25,7 @@ async function main() {
     { email: "head@example.com", fullName: "อ. นพมาศ (หัวหน้าสาขาวิชา CD)", role: "dept_head", department: "สาขาวิชา CD", faculty: "คณะวิชา" },
     { email: "dean@example.com", fullName: "อ.ดร.จำรูญศรี พุ่มเทียน (คณบดี)", role: "dean", faculty: "คณะวิชา" },
     { email: "committee@example.com", fullName: "คณะกรรมการประชุมคณะ (กบค.)", role: "faculty_committee", faculty: "คณะวิชา" },
-    { email: "uni@example.com", fullName: "กองพัฒนานักศึกษา (สำนักงานมหาวิทยาลัย)", role: "university", department: "งานกิจกรรมนักศึกษา", faculty: "สำนักงานมหาวิทยาลัย" },
+    { email: "university@example.com", fullName: "กองพัฒนานักศึกษา (สำนักงานมหาวิทยาลัย)", role: "university", department: "งานกิจกรรมนักศึกษา", faculty: "สำนักงานมหาวิทยาลัย" },
     { email: "admin@example.com", fullName: "ผู้ดูแลระบบ", role: "admin" },
   ];
 
