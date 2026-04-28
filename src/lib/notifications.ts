@@ -64,7 +64,7 @@ export async function notifyStatusChange(projectId: string, status: string) {
 export async function notifyNextReviewer(projectId: string, nextStepName: string, assigneeRole: string, assigneeId?: string | null) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
-    select: { projectName: true, advisorId: true },
+    select: { projectName: true, advisorId: true, department: true },
   });
 
   if (!project) return;
