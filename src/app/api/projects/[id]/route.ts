@@ -29,7 +29,17 @@ export async function GET(
         ]
       },
       include: { 
-        documents: true,
+        documents: {
+          select: {
+            id: true,
+            docType: true,
+            fileName: true,
+            fileSize: true,
+            mimeType: true,
+            createdAt: true,
+            // Exclude fileUrl to prevent loading massive base64 strings into memory
+          }
+        },
         members: { include: { user: { select: { fullName: true, email: true } } } },
         owner: { select: { fullName: true, email: true } },
         advisor: { select: { fullName: true, email: true } }

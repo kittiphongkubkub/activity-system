@@ -21,8 +21,8 @@ export async function POST(
       where: { id, ownerId: (session.user as any).id },
     });
 
-    if (!project || project.status !== "approved") {
-      return NextResponse.json({ error: "Only approved projects can submit a summary" }, { status: 400 });
+    if (!project || (project.status !== "approved" && project.status !== "summary_revision_required")) {
+      return NextResponse.json({ error: "Only approved or revision-required projects can submit a summary" }, { status: 400 });
     }
 
     // Use transaction to update project and create summary
@@ -82,7 +82,7 @@ export async function POST(
         }
       });
 
-      // 4. Create Documents for 027
+      // 5. Create Documents for 027
       const userId = (session.user as any).id;
       if (body.attachments?.length > 0) {
         await tx.document.createMany({
@@ -97,6 +97,10 @@ export async function POST(
           }))
         });
       }
+
+      // 6. Notify next reviewer
+      const { notifyNextReviewer } = await import("@/lib/notifications");
+      await notifyNextReviewer(id, "อาจารย์ที่ปรึกษา (สรุปผล)", "advisor", project.advisorId, tx);
     });
 
     return NextResponse.json({ success: true });

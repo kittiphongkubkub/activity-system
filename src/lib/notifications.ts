@@ -12,8 +12,9 @@ export async function createNotification({
   type: string;
   title: string;
   message?: string;
-}) {
-  return await prisma.notification.create({
+}, tx?: any) {
+  const db = tx || prisma;
+  return await db.notification.create({
     data: {
       userId,
       projectId,
@@ -24,8 +25,9 @@ export async function createNotification({
   });
 }
 
-export async function notifyStatusChange(projectId: string, status: string) {
-  const project = await prisma.project.findUnique({
+export async function notifyStatusChange(projectId: string, status: string, tx?: any) {
+  const db = tx || prisma;
+  const project = await db.project.findUnique({
     where: { id: projectId },
     select: { ownerId: true, projectName: true },
   });
@@ -57,12 +59,13 @@ export async function notifyStatusChange(projectId: string, status: string) {
       type: "status_update",
       title,
       message,
-    });
+    }, tx);
   }
 }
 
-export async function notifyNextReviewer(projectId: string, nextStepName: string, assigneeRole: string, assigneeId?: string | null) {
-  const project = await prisma.project.findUnique({
+export async function notifyNextReviewer(projectId: string, nextStepName: string, assigneeRole: string, assigneeId?: string | null, tx?: any) {
+  const db = tx || prisma;
+  const project = await db.project.findUnique({
     where: { id: projectId },
     select: { projectName: true, advisorId: true, department: true },
   });
@@ -77,7 +80,7 @@ export async function notifyNextReviewer(projectId: string, nextStepName: string
       type: "approval_request",
       title: "มีโครงการรอการอนุมัติจากคุณ",
       message: `โครงการ "${project.projectName}" อยู่ในขั้นตอน: ${nextStepName}`,
-    });
+    }, tx);
     return;
   }
 
@@ -89,12 +92,12 @@ export async function notifyNextReviewer(projectId: string, nextStepName: string
       type: "approval_request",
       title: "มีโครงการรอการอนุมัติจากคุณ",
       message: `โครงการ "${project.projectName}" อยู่ในขั้นตอน: ${nextStepName}`,
-    });
+    }, tx);
     return;
   }
 
   // Case 3: Broadcast to Role (e.g. Dean, Program Chair) within same department/faculty
-  const usersWithRole = await prisma.user.findMany({
+  const usersWithRole = await db.user.findMany({
     where: { 
       role: assigneeRole, 
       isActive: true,
@@ -105,7 +108,7 @@ export async function notifyNextReviewer(projectId: string, nextStepName: string
 
   // FIXED: Use createMany for a single batch INSERT instead of N sequential INSERTs
   if (usersWithRole.length > 0) {
-    await prisma.notification.createMany({
+    await db.notification.createMany({
       data: usersWithRole.map(user => ({
         userId: user.id,
         projectId,

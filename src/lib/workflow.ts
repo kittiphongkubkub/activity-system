@@ -71,8 +71,9 @@ export async function createWorkflowSteps(projectId: string, docType: "025" | "0
   });
 }
 
-async function rewardActivityScore(projectId: string) {
-  const project = await prisma.project.findUnique({
+async function rewardActivityScore(projectId: string, tx?: any) {
+  const db = tx || prisma;
+  const project = await db.project.findUnique({
     where: { id: projectId },
   });
 
@@ -101,7 +102,7 @@ async function rewardActivityScore(projectId: string) {
   // Ensure minimum 1 point if something went wrong but project is completed
   if (totalScore === 0) totalScore = 1;
 
-  await prisma.activityScore.create({
+  await db.activityScore.create({
     data: {
       studentId: project.ownerId,
       projectId: projectId,
@@ -117,7 +118,7 @@ async function rewardActivityScore(projectId: string) {
     type: "score_awarded",
     title: "ได้รับคะแนนกิจกรรมใหม่",
     message: `คุณได้รับคะแนนกิจกรรม ${totalScore} คะแนน จากการทำโครงการ "${project.projectName}" สำเร็จ`,
-  });
+  }, tx);
 }
 
 export async function processStepReview({
@@ -179,12 +180,10 @@ export async function processStepReview({
         });
 
         if (finalStatus === "completed") {
-          // Inner function needs to be aware of the transaction context if it does DB work
-          // But for now, we'll keep it as is or move it into the transaction
-          await rewardActivityScore(projectId); 
+          await rewardActivityScore(projectId, tx); 
         }
         
-        await notifyStatusChange(projectId, finalStatus);
+        await notifyStatusChange(projectId, finalStatus, tx);
       }
 
       await tx.auditLog.create({
@@ -227,7 +226,7 @@ export async function processStepReview({
         data: { status: newStatus },
       });
 
-      await notifyStatusChange(projectId, newStatus);
+      await notifyStatusChange(projectId, newStatus, tx);
     } else if (decision === "reject") {
       await tx.workflowStep.update({
         where: { id: stepId },
@@ -257,7 +256,7 @@ export async function processStepReview({
         data: { status: newStatus },
       });
 
-      await notifyStatusChange(projectId, newStatus);
+      await notifyStatusChange(projectId, newStatus, tx);
     }
   });
 }

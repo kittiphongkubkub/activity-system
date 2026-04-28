@@ -65,7 +65,7 @@ export async function POST(
 
       // 3. Create Notification for First Step
       const { notifyNextReviewer } = await import("@/lib/notifications");
-      await notifyNextReviewer(id, "อาจารย์ที่ปรึกษา", "advisor", project.advisorId);
+      await notifyNextReviewer(id, "อาจารย์ที่ปรึกษา", "advisor", project.advisorId, tx);
     });
 
     return NextResponse.json({ success: true });
