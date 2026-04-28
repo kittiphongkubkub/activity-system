@@ -109,7 +109,7 @@ export async function notifyNextReviewer(projectId: string, nextStepName: string
   // FIXED: Use createMany for a single batch INSERT instead of N sequential INSERTs
   if (usersWithRole.length > 0) {
     await db.notification.createMany({
-      data: usersWithRole.map(user => ({
+      data: usersWithRole.map((user: { id: string }) => ({
         userId: user.id,
         projectId,
         type: "approval_request",
